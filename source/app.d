@@ -13,10 +13,8 @@ int main(string[] args) {
 	settings.port = 8080;
 	settings.bindAddresses = ["::1", "127.0.0.1"];
 
-	auto f = new FtpRoot("/home/crom", r"^\..*?$");
+	auto f = new FtpRoot(args[1], r"^\..*?$");
 	listenHTTP(settings, &f.Serve);
-
-	//listenHTTP(settings, serveStaticFile("dub.json"));
 
 
 	runEventLoop();
@@ -48,7 +46,7 @@ class FtpRoot{
 			return;
 		}
 
-
+		//Apply the regex blacklist
 		foreach(dir ; pathSplitter(req.path)){
 			if(dir.matchFirst(m_blacklist)){
 				res.writeBody("<h1>Access Denied by FTP Rule</h1>", "text/html; charset=UTF-8");
@@ -120,6 +118,7 @@ private:
 						<tr><th>Type</th><th>Name</th><th>Size</th></tr>
 		});
 
+		//Sort DirEntries (directories first, alphabetical order after)
 		bool SortDirs(ref DirEntry a, ref DirEntry b){
 			if(a.isDir==b.isDir)return a.name<b.name;
 			return a.isDir>b.isDir;
@@ -168,8 +167,8 @@ private:
 	}
 
 	void ServeFile(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
-		auto ans = serveStaticFile(path);
-		ans(req, res);
+		auto callback = serveStaticFile(path);
+		callback(req, res);
 	}
 
 
