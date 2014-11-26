@@ -106,17 +106,93 @@ private:
 			files ~= f;
 
 		auto page = res.bodyWriter;
-		page.write(q{
+		page.write(q"[
 			<!DOCTYPE html>
 			<html>
 				<head>
-					<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-					<title>}~path.baseName~q{</title>
+					<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+					<title>]"~path.baseName~q"[</title>
+					<style>
+					#dropzone {
+						background: palegreen;
+						width: 150px;
+						height: 50px;
+						line-height: 50px;
+						text-align: center;
+						font-weight: bold;
+					}
+					#dropzone.in {
+						width: 600px;
+						height: 200px;
+						line-height: 200px;
+						font-size: larger;
+					}
+					#dropzone.hover {
+						background: lawngreen;
+					}
+					#dropzone.fade {
+						-webkit-transition: all 0.3s ease-out;
+						-moz-transition: all 0.3s ease-out;
+						-ms-transition: all 0.3s ease-out;
+						-o-transition: all 0.3s ease-out;
+						transition: all 0.3s ease-out;
+						opacity: 1;
+					}
+					</style>
 				</head>
 				<body>
+					<div id="dropzone" class="fade well"></div>
+					<script>
+						var drop = document.getElementById('dropzone');
+
+						drop.addEventListener('dragover', function(e){
+						  e.preventDefault();
+						  drop.className = drop.className+" hover";
+						}, false);
+						drop.addEventListener('dragenter', function(e){
+						  e.preventDefault();
+						  drop.className = drop.className.replace(/\bhover\b/,'');
+						}, false);
+
+						drop.addEventListener('drop', function(e){
+						  e.preventDefault();
+						  drop.className = drop.className.replace(/\bhover\b/,'');
+						  
+						  var dt = e.dataTransfer;
+						  var files = dt.files;
+						  for(var i=0; i<files.length; i++){
+						    var file = files[i];
+						    console.log(file);
+						    
+						    var xhr = new XMLHttpRequest();
+						    xhr.open('POST', window.location.pathname);
+						    xhr.onload = function() {
+						      //result.innerHTML += this.responseText;
+						      //handleComplete(file.size);
+						    };
+						    xhr.onerror = function() {
+						      //result.textContent = this.responseText;
+						      //handleComplete(file.size);
+						    };
+						    xhr.upload.onprogress = function(event){
+						        //var progress = totalProgress + event.loaded;
+						        //console.log(progress / totalSize);
+						    }
+						    xhr.upload.onloadstart = function(event) {
+						    }
+
+						    // création de l'objet FormData
+						    var formData = new FormData();
+						    formData.append('uploadedfile', file);
+						    xhr.send(formData);
+						  }
+						  
+						}, false);
+					</script>
 					<table>
 						<tr><th>Type</th><th>Name</th><th>Size</th></tr>
-		});
+						<!-- FILE LIST -->]"
+		~'\n');
 
 		//Sort DirEntries (directories first, alphabetical order after)
 		bool SortDirs(ref DirEntry a, ref DirEntry b){
@@ -132,7 +208,7 @@ private:
 			page.write("<tr>");
 
 			page.write("<td>");
-			if(de.isSymlink)	page.write("->");
+			if(de.isSymlink)	page.write("-&gt;");
 
 			if(de.isDir)		page.write("D");
 			else if(de.isFile)	page.write("F");
@@ -145,25 +221,26 @@ private:
 			//Size
 			page.write("<td>");
 			float fSize = de.size/1_000_000.0;
-			if(fSize<0.01)	page.write("<0.01 MB");
+			if(fSize<0.01)	page.write("&lt;0.01 MB");
 			else 			page.write(format("%.2f MB",fSize));
 			page.write("</td>");
 
-			page.write("</tr>");
+			page.write("</tr>\n");
 		}
-		page.write("</table>");
 
-		page.write(q{
-			<form enctype="multipart/form-data" method="POST">
-				<input type="hidden" name="FileUpload" value="1" />
-				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-				Choose a file to upload: <input name="uploadedfile" type="file" /><br />
-				<input type="submit" value="Upload File" />
-			</form>
+		page.write(q"[
+						<!-- ######### -->
+					</table>
+					<form enctype="multipart/form-data" method="POST">
+						<input type="hidden" name="FileUpload" value="1" />
+						<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+						Choose a file to upload: <input name="uploadedfile" type="file" /><br />
+						<input type="submit" value="Upload File" />
+					</form>
 
-			</body>
+				</body>
 			</html>
-		});
+		]");
 	}
 
 	void ServeFile(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
