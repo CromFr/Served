@@ -14,12 +14,19 @@ int main(string[] args) {
 	settings.bindAddresses = ["::1", "127.0.0.1"];
 
 	auto f = new FtpRoot(args[1], r"^\..*?$");
-	listenHTTP(settings, &f.Serve);
+	auto ftpPub = new FtpRoot("./Public", r"^\..*?$");
 
+
+	auto router = new URLRouter;
+	ftpPub.setRoute(router, "/_served_pub", 0b100);
+	f.setRoute(router, "/", 0b110);
+
+	listenHTTP(settings, router);
 
 	runEventLoop();
 	return 0;
 }
+
 
 
 
@@ -33,9 +40,21 @@ class FtpRoot{
 		m_blacklist = regex(blacklist);
 	}
 
-	void Serve(HTTPServerRequest req, HTTPServerResponse res){
-		auto reqFullPath = DirEntry(buildNormalizedPath(m_de, "."~req.path));
+	void setRoute(URLRouter router, string prefix, int accessrights=0b100){
+		m_prefix = prefix;
 
+		if(accessrights & 0b100){//read
+			router.get(m_prefix~"*", &Serve);
+		}
+		if(accessrights & 0b010){//write
+			router.post(m_prefix~"*", &Serve);
+		}
+	}
+
+	void Serve(HTTPServerRequest req, HTTPServerResponse res){
+		auto reqpath = buildNormalizedPath(req.path).chompPrefix(m_prefix);
+
+		auto reqFullPath = DirEntry(buildNormalizedPath(m_de, "."~reqpath));
 
 		//Forbid escaping from ftp root
 		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
@@ -45,7 +64,7 @@ class FtpRoot{
 		}
 
 		//Apply the regex blacklist
-		foreach(dir ; pathSplitter(req.path)){
+		foreach(dir ; pathSplitter(reqpath)){
 			if(dir.matchFirst(m_blacklist)){
 				res.writeBody("<h1>Access Denied by FTP Rule</h1>", "text/html; charset=UTF-8");
 				return;
@@ -55,6 +74,7 @@ class FtpRoot{
 		switch(req.method){
 			case HTTPMethod.GET:{
 				writeln("GET:  ",reqFullPath);
+
 				if(reqFullPath.isDir){
 					ServeDir(req, res, reqFullPath);
 				}
@@ -96,6 +116,7 @@ class FtpRoot{
 private:
 	DirEntry m_de;
 	Regex!char m_blacklist;
+	string m_prefix;
 
 
 	void ServeDir(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
@@ -111,83 +132,11 @@ private:
 				<head>
 					<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 					<title>]"~path.baseName~q"[</title>
-					<style>
-					#dropzone {
-						background: palegreen;
-						width: 150px;
-						height: 50px;
-						line-height: 50px;
-						text-align: center;
-						font-weight: bold;
-					}
-					#dropzone.in {
-						width: 600px;
-						height: 200px;
-						line-height: 200px;
-						font-size: larger;
-					}
-					#dropzone.hover {
-						background: lawngreen;
-					}
-					#dropzone.fade {
-						-webkit-transition: all 0.3s ease-out;
-						-moz-transition: all 0.3s ease-out;
-						-ms-transition: all 0.3s ease-out;
-						-o-transition: all 0.3s ease-out;
-						transition: all 0.3s ease-out;
-						opacity: 1;
-					}
-					</style>
+					<link rel="stylesheet" href="/_served_pub/style.css" type="text/css"/>
 				</head>
 				<body>
 					<div id="dropzone" class="fade well"></div>
-					<script>
-						var drop = document.getElementById('dropzone');
-
-						drop.addEventListener('dragover', function(e){
-						  e.preventDefault();
-						  drop.className = drop.className+" hover";
-						}, false);
-						drop.addEventListener('dragenter', function(e){
-						  e.preventDefault();
-						  drop.className = drop.className.replace(/\bhover\b/,'');
-						}, false);
-
-						drop.addEventListener('drop', function(e){
-						  e.preventDefault();
-						  drop.className = drop.className.replace(/\bhover\b/,'');
-						  
-						  var dt = e.dataTransfer;
-						  var files = dt.files;
-						  for(var i=0; i<files.length; i++){
-						    var file = files[i];
-						    console.log(file);
-						    
-						    var xhr = new XMLHttpRequest();
-						    xhr.open('POST', window.location.pathname);
-						    xhr.onload = function() {
-						      //result.innerHTML += this.responseText;
-						      //handleComplete(file.size);
-						    };
-						    xhr.onerror = function() {
-						      //result.textContent = this.responseText;
-						      //handleComplete(file.size);
-						    };
-						    xhr.upload.onprogress = function(event){
-						        //var progress = totalProgress + event.loaded;
-						        //console.log(progress / totalSize);
-						    }
-						    xhr.upload.onloadstart = function(event) {
-						    }
-
-						    // création de l'objet FormData
-						    var formData = new FormData();
-						    formData.append('uploadedfile', file);
-						    xhr.send(formData);
-						  }
-						  
-						}, false);
-					</script>
+					<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
 					<table>
 						<tr><th>Type</th><th>Name</th><th>Size</th></tr>
 						<!-- FILE LIST -->]"

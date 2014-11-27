@@ -1,0 +1,19 @@
+#dropzone {
+	background: #AAFFAA;
+	width: 150px;
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+	font-weight: bold;
+}
+#dropzone.hover {
+	background: #00FF00;
+}
+#dropzone.fade {
+	-webkit-transition: all 0.3s ease-out;
+	-moz-transition: all 0.3s ease-out;
+	-ms-transition: all 0.3s ease-out;
+	-o-transition: all 0.3s ease-out;
+	transition: all 0.3s ease-out;
+	opacity: 1;
+}
