@@ -39,8 +39,6 @@ class FtpRoot{
 
 		//Forbid escaping from ftp root
 		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
-		writeln("full=",reqFullPath,"\t\tm_de=",m_de);
-		writeln(relPath,"\t\tfront=",relPath.front);
 		if(relPath.front==".."){
 			res.writeBody("<h1>Access Denied : Never go up the root</h1>", "text/html; charset=UTF-8");
 			return;
@@ -56,7 +54,7 @@ class FtpRoot{
 
 		switch(req.method){
 			case HTTPMethod.GET:{
-				writeln(reqFullPath);
+				writeln("GET:  ",reqFullPath);
 				if(reqFullPath.isDir){
 					ServeDir(req, res, reqFullPath);
 				}
@@ -67,6 +65,7 @@ class FtpRoot{
 			}break;
 
 			case HTTPMethod.POST:{
+				writeln("POST: ",reqFullPath);
 				if(req.contentType=="multipart/form-data"){
 					auto files = req.files;
 					foreach(f ; files){
@@ -74,7 +73,7 @@ class FtpRoot{
 						auto tmppath = f.tempPath.toNativeString;
 						auto targetpath = buildNormalizedPath(reqFullPath, f.filename.toString);
 
-						logInfo("Uploaded file ",targetpath);
+						logInfo("Uploaded file: ",targetpath);
 						tmppath.copy(targetpath);
 					}
 					ServeDir(req, res, reqFullPath);
