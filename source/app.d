@@ -144,17 +144,40 @@ private:
 								<a class="navbar-brand" href="#">Served</a>
 							</div>
 							<div id="navbar" class="navbar-collapse collapse">
-								<ul class="nav navbar-nav">
-									<li><a href="#">/</a></li>
-									<li class="active"><a href="">test/</a></li>
-									<li><a href="">example/</a></li>
+								<ul class="nav navbar-nav">]"~{
+
+									string ret;
+									string link;
+									foreach(folder ; req.path.buildNormalizedPath.pathSplitter){
+										link = buildNormalizedPath(link, folder);
+
+										ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
+									}
+									return ret;
+
+								}()~q"[
 								</ul>
 							</div>
 						</div>
-					</nav>
-	
-					<div id="dropzone" class="fade well"></div>
-					<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
+					</nav>]"~{
+
+						auto indexmd = path.buildPath("index.md");
+						if(indexmd.exists){
+							auto res = requestHTTP("https://api.github.com/markdown",
+								(scope req) {
+									import std.file;
+									req.method = HTTPMethod.POST;
+									req.writeJsonBody([
+										"text": readText(indexmd),
+										"mode":"markdown"
+									]);
+								}
+							);
+							return "<div class=\"jumbotron\"><div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div></div>";
+						}
+						return "";
+
+					}()~q"[
 					<div class="container">
 						<div class="table-responsive">
 	            			<table class="table table-striped">
@@ -203,12 +226,15 @@ private:
 								<!-- ######### -->
 								</tbody>
 							</table>
+
 							<form enctype="multipart/form-data" method="POST">
 								<input type="hidden" name="FileUpload" value="1" />
 								<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
 								Choose a file to upload: <input name="uploadedfile" type="file" /><br />
 								<input type="submit" value="Upload File" />
 							</form>
+							<div id="dropzone" class="fade well"></div>
+							<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
 						</div>
 					</div>
 					<script src="/_served_pub/jquery/jquery.min.js"></script>
