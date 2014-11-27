@@ -11,7 +11,6 @@ int main(string[] args) {
 
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
-	settings.bindAddresses = ["::1", "127.0.0.1"];
 
 	auto f = new FtpRoot(args[1], r"^\..*?$");
 	auto ftpPub = new FtpRoot("./Public", r"^\..*?$");
@@ -141,7 +140,7 @@ private:
 					<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 						<div class="container">
 							<div class="navbar-header">
-								<a class="navbar-brand" href="#">Served</a>
+								<a class="navbar-brand" href='https://github.com/CromFr/Served'>Served</a>
 							</div>
 							<div id="navbar" class="navbar-collapse collapse">
 								<ul class="nav navbar-nav">]"~{
@@ -182,47 +181,52 @@ private:
 						<div class="table-responsive">
 	            			<table class="table table-striped">
 								<thead>
-									<tr><th>Type</th><th>Name</th><th>Size</th></tr>
+									<tr><th></th><th>Name</th><th colspan="2">Size</th></tr>
 								</thead>
 								<tbody>
 								<!-- FILE LIST -->]"
-		~'\n');
+								~'\n');
 
-		//Sort DirEntries (directories first, alphabetical order after)
-		bool SortDirs(ref DirEntry a, ref DirEntry b){
-			if(a.isDir==b.isDir)return a.name<b.name;
-			return a.isDir>b.isDir;
-		}
-		foreach(de ; files.sort!SortDirs){
+								//Sort DirEntries (directories first, alphabetical order after)
+								bool SortDirs(ref DirEntry a, ref DirEntry b){
+									if(a.isDir==b.isDir)return a.name<b.name;
+									return a.isDir>b.isDir;
+								}
+								foreach(de ; files.sort!SortDirs){
 
-			if(de.baseName.matchFirst(m_blacklist)){
-				continue;
-			}
+									if(de.baseName.matchFirst(m_blacklist)){
+										continue;
+									}
 
-			page.write("<tr>");
+									page.write("<tr>");
 
-			page.write("<td>");
-			if(de.isSymlink)	page.write("-&gt;");
+									page.write("<td>");
+									if(de.isSymlink)	page.write("-&gt;");
 
-			if(de.isDir)		page.write("D");
-			else if(de.isFile)	page.write("F");
-			else				page.write("?");
-			page.write("</td>");
+									if(de.isDir)		page.write("<div class=\"glyphicon glyphicon-folder-open\"></div>");
+									else if(de.isFile)	page.write("<div class=\"glyphicon glyphicon-file\"></div>");
+									else				page.write("<div class=\"glyphicon glyphicon-question-sign\"></div>");
+									page.write("</td>");
 
-			//Name
-			page.write("<td><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>");
+									//Name
+									page.write("<td><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>");
 
-			//Size
-			page.write("<td>");
-			float fSize = de.size/1_000_000.0;
-			if(fSize<0.01)	page.write("&lt;0.01 MB");
-			else 			page.write(format("%.2f MB",fSize));
-			page.write("</td>");
+									//Size
+									auto size = de.size;
+									auto logsize = std.math.log10(de.size);
 
-			page.write("</tr>\n");
-		}
+									if(logsize<3.5)			page.write("<td>"~(size).to!string~" <span class=\"unit-simple\">B</span></td>");
+									else if(logsize<6.5)	page.write("<td>"~(size/1_000).to!string~" <span class=\"unit-kilo\">KB</span></td>");
+									else if(logsize<9.5)	page.write("<td>"~(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span></td>");
+									else					page.write("<td>"~(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span></td>");
 
-		page.write(q"[
+
+									page.write("<td><progress value=\""~(logsize-2>0?logsize-2:0.1).to!string~"\" min=\"0\" max=\"8\"></progress></td>");
+
+									page.write("</tr>\n");
+								}
+
+								page.write(q"[
 								<!-- ######### -->
 								</tbody>
 							</table>
