@@ -54,7 +54,7 @@ class FtpRoot{
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 		auto reqpath = buildNormalizedPath(req.path).chompPrefix(m_prefix);
 
-		auto reqFullPath = DirEntry(buildNormalizedPath(m_de, "."~reqpath));
+		auto reqFullPath = DirEntry(buildNormalizedPath(m_de, "./"~reqpath));
 
 		//Forbid escaping from ftp root
 		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
@@ -131,15 +131,38 @@ private:
 			<html>
 				<head>
 					<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+				    <meta name="viewport" content="width=device-width, initial-scale=1">
+
 					<title>]"~path.baseName~q"[</title>
+					<link rel="stylesheet" href="/_served_pub/bootstrap/css/bootstrap.min.css" type="text/css"/>
 					<link rel="stylesheet" href="/_served_pub/style.css" type="text/css"/>
 				</head>
 				<body>
+					<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+						<div class="container">
+							<div class="navbar-header">
+								<a class="navbar-brand" href="#">Served</a>
+							</div>
+							<div id="navbar" class="navbar-collapse collapse">
+								<ul class="nav navbar-nav">
+									<li><a href="#">/</a></li>
+									<li class="active"><a href="">test/</a></li>
+									<li><a href="">example/</a></li>
+								</ul>
+							</div>
+						</div>
+					</nav>
+	
 					<div id="dropzone" class="fade well"></div>
 					<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
-					<table>
-						<tr><th>Type</th><th>Name</th><th>Size</th></tr>
-						<!-- FILE LIST -->]"
+					<div class="container">
+						<div class="table-responsive">
+	            			<table class="table table-striped">
+								<thead>
+									<tr><th>Type</th><th>Name</th><th>Size</th></tr>
+								</thead>
+								<tbody>
+								<!-- FILE LIST -->]"
 		~'\n');
 
 		//Sort DirEntries (directories first, alphabetical order after)
@@ -177,15 +200,19 @@ private:
 		}
 
 		page.write(q"[
-						<!-- ######### -->
-					</table>
-					<form enctype="multipart/form-data" method="POST">
-						<input type="hidden" name="FileUpload" value="1" />
-						<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-						Choose a file to upload: <input name="uploadedfile" type="file" /><br />
-						<input type="submit" value="Upload File" />
-					</form>
-
+								<!-- ######### -->
+								</tbody>
+							</table>
+							<form enctype="multipart/form-data" method="POST">
+								<input type="hidden" name="FileUpload" value="1" />
+								<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+								Choose a file to upload: <input name="uploadedfile" type="file" /><br />
+								<input type="submit" value="Upload File" />
+							</form>
+						</div>
+					</div>
+					<script src="/_served_pub/jquery/jquery.min.js"></script>
+					<script src="/_served_pub/bootstrap/js/bootstrap.min.js"></script>
 				</body>
 			</html>
 		]");
