@@ -179,7 +179,7 @@ private:
 					}()~q"[
 					<div class="container">
 						<div class="table-responsive">
-	            			<table class="table table-striped">
+	            			<table class="table table-striped table-hover">
 								<thead>
 									<tr><th></th><th>Name</th><th colspan="2">Size</th></tr>
 								</thead>
@@ -215,10 +215,12 @@ private:
 									auto size = de.size;
 									auto logsize = std.math.log10(de.size);
 
-									if(logsize<3.5)			page.write("<td>"~(size).to!string~" <span class=\"unit-simple\">B</span></td>");
-									else if(logsize<6.5)	page.write("<td>"~(size/1_000).to!string~" <span class=\"unit-kilo\">KB</span></td>");
-									else if(logsize<9.5)	page.write("<td>"~(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span></td>");
-									else					page.write("<td>"~(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span></td>");
+									page.write("<td class=\"text-right text-nowrap code\"><samp>");
+									if(logsize<3.5)			page.write((size).to!string~" <span class=\"unit-simple\">_B</span>");
+									else if(logsize<6.5)	page.write((size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>");
+									else if(logsize<9.5)	page.write((size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>");
+									else					page.write((size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>");
+									page.write("</samp></td>");
 
 
 									page.write("<td><progress value=\""~(logsize-2>0?logsize-2:0.1).to!string~"\" min=\"0\" max=\"8\"></progress></td>");
