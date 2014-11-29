@@ -52,8 +52,13 @@ class FtpRoot{
 
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 		auto reqpath = buildNormalizedPath(req.path).chompPrefix(m_prefix);
+		auto reqFullPath = buildNormalizedPath(m_de, "./"~reqpath);
 
-		auto reqFullPath = DirEntry(buildNormalizedPath(m_de, "./"~reqpath));
+		if(!reqFullPath.exists){
+			res.statusCode = 404;
+			res.writeBody("<h1>404 : Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
+			return;
+		}
 
 		//Forbid escaping from ftp root
 		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
@@ -75,10 +80,10 @@ class FtpRoot{
 				writeln("GET:  ",reqFullPath);
 
 				if(reqFullPath.isDir){
-					ServeDir(req, res, reqFullPath);
+					ServeDir(req, res, DirEntry(reqFullPath));
 				}
 				else{
-					ServeFile(req, res, reqFullPath);
+					ServeFile(req, res, DirEntry(reqFullPath));
 				}
 
 			}break;
@@ -95,7 +100,7 @@ class FtpRoot{
 						logInfo("Uploaded file: ",targetpath);
 						tmppath.copy(targetpath);
 					}
-					ServeDir(req, res, reqFullPath);
+					ServeDir(req, res, DirEntry(reqFullPath));
 
 
 				}
