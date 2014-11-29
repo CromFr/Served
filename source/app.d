@@ -51,7 +51,7 @@ class FtpRoot{
 	}
 
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
-		auto reqpath = buildNormalizedPath(req.path).chompPrefix(m_prefix);
+		auto reqpath = buildNormalizedPath(req.path).chompPrefix(buildNormalizedPath(m_prefix));
 		auto reqFullPath = buildNormalizedPath(m_de, "./"~reqpath);
 
 		if(!reqFullPath.exists){
