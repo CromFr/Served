@@ -1,17 +1,30 @@
-var drop = document.getElementById('dropzone');
+var drop = document.getElementById('droparea');
 
-drop.addEventListener('dragover', function(e){
+
+//Display modal
+document.addEventListener('dragenter', function(e){
 	e.preventDefault();
-	drop.className = drop.className+" hover";
+	$('#modal_upload_file').modal();
 }, false);
+
+//Hilight drop area
 drop.addEventListener('dragenter', function(e){
 	e.preventDefault();
+
+	if(drop.className.search(/\bhover\b/)==-1)
+		drop.className = drop.className+" hover";
+}, false);
+
+//Un-hilight drop area
+drop.addEventListener('dragexit', function(e){
+	e.preventDefault();
+
 	drop.className = drop.className.replace(/\bhover\b/,'');
 }, false);
 
+//Upload file
 drop.addEventListener('drop', function(e){
 	e.preventDefault();
-	drop.className = drop.className.replace(/\bhover\b/,'');
 	
 	var dt = e.dataTransfer;
 	var files = dt.files;
@@ -24,22 +37,28 @@ drop.addEventListener('drop', function(e){
 		xhr.onload = function() {
 		//result.innerHTML += this.responseText;
 		//handleComplete(file.size);
-	};
-	xhr.onerror = function() {
-		//result.textContent = this.responseText;
-		//handleComplete(file.size);
-	};
-	xhr.upload.onprogress = function(event){
-		//var progress = totalProgress + event.loaded;
-		//console.log(progress / totalSize);
-	}
-	xhr.upload.onloadstart = function(event) {
-	}
+		};
+		xhr.onerror = function() {
+			//result.textContent = this.responseText;
+			//handleComplete(file.size);
+		};
+		xhr.upload.onprogress = function(event){
+			//var progress = totalProgress + event.loaded;
+			//console.log(progress / totalSize);
+		}
+		xhr.upload.onloadstart = function(event) {
+		}
 
-	// création de l'objet FormData
-	var formData = new FormData();
-	formData.append('uploadedfile', file);
-	xhr.send(formData);
-}
+		// création de l'objet FormData
+		var formData = new FormData();
+		formData.append('uploadedfile', file);
+		xhr.send(formData);
+	}
+}, false);
 
+//Un-hilight drop area
+document.addEventListener('drop', function(e){
+	e.preventDefault();
+
+	drop.className = drop.className.replace(/\bhover\b/,'');
 }, false);

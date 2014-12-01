@@ -50,7 +50,7 @@
 						<h4 class="modal-title" id="modal_upload_file_label">Drop file here</h4>
 					</div>
 					<div class="modal-body">
-						<div id="dropzone" class="fade well"></div>
+						<div id="droparea" class="fade well"></div>
 					</div>
 					<div class="modal-footer">
 						<form role="form" class="form-inline" enctype="multipart/form-data" method="POST">
