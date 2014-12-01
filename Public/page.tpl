@@ -36,14 +36,8 @@
 				</tbody>
 			</table>
 
-			<!-- <form enctype="multipart/form-data" method="POST">
-				<input type="hidden" name="FileUpload" value="1" />
-				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-				Choose a file to upload: <input name="uploadedfile" type="file" /><br />
-				<input type="submit" value="Upload File" />
-			</form> -->
 			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modal_upload_file">
-				Upload file
+				<div class="glyphicon glyphicon-upload"></div> Upload file
 			</button>
 		</div>
 
@@ -52,11 +46,18 @@
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+						<button type="button" class="close" data-dismiss="modal"><span>&times;</span><span class="sr-only">Close</span></button>
 						<h4 class="modal-title" id="modal_upload_file_label">Drop file here</h4>
 					</div>
 					<div class="modal-body">
 						<div id="dropzone" class="fade well"></div>
+					</div>
+					<div class="modal-footer">
+						<form role="form" class="form-inline" enctype="multipart/form-data" method="POST">
+								<input class="input-file" name="uploadedfile" type="file">
+								<button class="btn btn-primary" type="submit">Upload</button>
+							<input type="hidden" name="FileUpload" value="1" />
+						</form>
 					</div>
 				</div>
 			</div>
