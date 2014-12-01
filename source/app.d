@@ -220,15 +220,25 @@ private:
 									auto size = de.size;
 									auto logsize = std.math.log10(de.size);
 
-									page.write("<td class=\"text-right text-nowrap code\"><samp>");
-									if(logsize<3.5)			page.write((size).to!string~" <span class=\"unit-simple\">_B</span>");
-									else if(logsize<6.5)	page.write((size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>");
-									else if(logsize<9.5)	page.write((size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>");
-									else					page.write((size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>");
-									page.write("</samp></td>");
 
+									page.write(q"[
+										<td class="text-right text-nowrap">
+											<samp>]");
 
-									page.write("<td><progress value=\""~(logsize-2>0?logsize-2:0.1).to!string~"\" min=\"0\" max=\"8\"></progress></td>");
+												if(logsize<3.5)			page.write((size).to!string~" <span class=\"unit-simple\">_B</span>");
+												else if(logsize<6.5)	page.write((size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>");
+												else if(logsize<9.5)	page.write((size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>");
+												else					page.write((size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>");
+
+												page.write(q"[
+											</samp>
+										</td>
+										<td style="min-width: 20%">
+											<div class="progress" style="margin: 0;">
+												<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" style="width: ]"~((logsize-2>0?logsize-2:0)/0.08).to!string~q"[%">
+												</div>
+											</div>
+										</td>]");
 
 									page.write("</tr>\n");
 								}
