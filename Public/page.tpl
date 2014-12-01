@@ -29,7 +29,7 @@
 		<div class="container">
 			<table class="table table-striped table-hover">
 				<thead class="bg-primary">
-					<tr><th></th><th width="85%">Name</th><th width="15%" colspan="2">Size</th></tr>
+					<tr><th></th><th width="85%">Name</th><th>Rights</th><th width="15%" colspan="2">Size</th></tr>
 				</thead>
 				<tbody>
 					{{FILE_LIST}}

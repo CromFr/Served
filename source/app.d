@@ -128,6 +128,8 @@ private:
 	string m_prefix;
 	Template m_tplPage;
 
+	
+
 
 	void ServeDir(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
 
@@ -184,7 +186,7 @@ private:
 				}
 
 				if(bDirSep==false && !de.isDir){
-					ret~="<tr><td class=\"bg-primary\" colspan=\"4\"></td></tr>\n";
+					ret~="<tr><td class=\"bg-primary\" colspan=\"5\"></td></tr>\n";
 					bDirSep = true;
 				}
 
@@ -201,10 +203,30 @@ private:
 				//Name
 				ret~="<td class=\"text-forcewrap\"><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>";
 
+
+				string getFileRights(DirEntry de){
+					import core.sys.posix.unistd;
+
+					auto st = de.statBuf;
+
+					int r;
+					if(getuid() == st.st_uid)		r = (st.st_mode>>6) & 0b111;
+					else if(getgid() == st.st_gid)	r = (st.st_mode>>3) & 0b111;
+					else							r = (st.st_mode) & 0b111;
+
+					string ret;
+					if(r&0b100)	ret~="r"; else ret~="-";
+					if(r&0b010)	ret~="w"; else ret~="-";
+					if(r&0b001)	ret~="x"; else ret~="-";
+
+					return ret;
+				}
+
+				ret~="<td class=\"text-nowrap\"><kbd>"~getFileRights(de)~"</kbd></td>";
+
 				//Size
 				auto size = de.size;
 				auto logsize = std.math.log10(de.size);
-
 
 				ret~=q"[
 					<td class="text-right text-nowrap">
