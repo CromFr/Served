@@ -176,10 +176,16 @@ private:
 			foreach(f ; dirEntries(path, SpanMode.shallow))
 				files ~= f;
 
+			bool bDirSep = false;
 			foreach(de ; files.sort!SortDirs){
 
 				if(de.baseName.matchFirst(m_blacklist)){
 					continue;
+				}
+
+				if(bDirSep==false && !de.isDir){
+					ret~="<tr><td class=\"bg-primary\" colspan=\"4\"></td></tr>\n";
+					bDirSep = true;
 				}
 
 				ret~="<tr>";
