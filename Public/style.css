@@ -1,21 +1,13 @@
 body {
 	padding-top: 50px;
 }
-.starter-template {
-	padding: 40px 15px;
-	text-align: center;
-}
 
 #dropzone {
-	background: #AAFFAA;
-	width: 150px;
-	height: 50px;
-	line-height: 50px;
-	text-align: center;
-	font-weight: bold;
+	width: 100%;
+	height: 100px;
 }
 #dropzone.hover {
-	background: #00FF00;
+	background: #AAFFAA;
 }
 #dropzone.fade {
 	-webkit-transition: all 0.3s ease-out;
@@ -44,28 +36,11 @@ body {
 	color: #BB1111;
 }
 
+.progress{
+	background-color: #DDD;
+}
 
-progress{
-	height: 18px;
-	border-radius: 10px;
-	padding: 1px;
-}
-progress::-moz-progress-bar{
-	/*bar*/
-	border-radius: 10px;
-	background-color: #222;
-	padding: 0 10px 0 10px;
-}
-progress::-webkit-progress-bar{
-	/*background*/
-	height: 15px;
-	border-radius: 10px;
-	background-color: #E6E6E6;
-	border: 1px solid #ccc;
-	padding: 2px;
-}
-progress::-webkit-progress-value{
-	/*bar*/
-	border-radius: 10px;
-	background-color: #222;
+.text-forcewrap{
+	word-break: break-all;
+	word-wrap: break-word; 
 }

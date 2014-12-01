@@ -157,7 +157,7 @@ private:
 						]);
 					}
 				);
-				return "<div class=\"jumbotron\"><div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div></div>";
+				return "<div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div>";
 			}
 			return "";
 
@@ -184,16 +184,16 @@ private:
 
 				ret~="<tr>";
 
-				ret~="<td>";
-				if(de.isSymlink)	ret~="-&gt;";
-
+				ret~="<td class=\"text-nowrap\">";
 				if(de.isDir)		ret~="<div class=\"glyphicon glyphicon-folder-open\"></div>";
 				else if(de.isFile)	ret~="<div class=\"glyphicon glyphicon-file\"></div>";
 				else				ret~="<div class=\"glyphicon glyphicon-question-sign\"></div>";
+
+				if(de.isSymlink)	ret~=" <div class=\"glyphicon glyphicon-link\"></div>";
 				ret~="</td>";
 
 				//Name
-				ret~="<td><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>";
+				ret~="<td class=\"text-forcewrap\"><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>";
 
 				//Size
 				auto size = de.size;
@@ -212,7 +212,7 @@ private:
 							ret~=q"[
 						</samp>
 					</td>
-					<td style="min-width: 20%">
+					<td style="min-width: 50px; width:100%;">
 						<div class="progress" style="margin: 0;">
 							<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" style="width: ]"~((logsize-2>0?logsize-2:0)/0.08).to!string~q"[%">
 							</div>
