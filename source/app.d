@@ -6,14 +6,17 @@ import std.conv;
 import std.regex;
 import std.algorithm;
 
+import tpl;
+
 
 int main(string[] args) {
+	auto tplPage = new Template("Public/page.tpl");
 
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
 
-	auto f = new FtpRoot(args[1], r"^\..*?$");
-	auto ftpPub = new FtpRoot("./Public", r"^\..*?$");
+	auto f = new FtpRoot(args[1], tplPage, r"^\..*?$");
+	auto ftpPub = new FtpRoot("./Public", tplPage, r"^\..*?$");
 
 
 	auto router = new URLRouter;
@@ -31,10 +34,12 @@ int main(string[] args) {
 
 
 class FtpRoot{
-	this(in string path, in string blacklist=""){
+	this(in string path, ref Template tplPage, in string blacklist=""){
 		m_de = DirEntry(path);
 		if(!m_de.isDir)
 			throw new Exception("Folder constructor must take an existing folder as argument");
+
+		m_tplPage = tplPage;
 
 		m_blacklist = regex(blacklist);
 	}
@@ -121,148 +126,114 @@ private:
 	DirEntry m_de;
 	Regex!char m_blacklist;
 	string m_prefix;
+	Template m_tplPage;
 
 
 	void ServeDir(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
 
-		DirEntry[] files;
-		foreach(f ; dirEntries(path, SpanMode.shallow))
-			files ~= f;
+
+		string NavbarPath(){
+			string ret;
+			string link;
+			foreach(folder ; req.path.buildNormalizedPath.pathSplitter){
+				link = buildNormalizedPath(link, folder);
+
+				ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
+			}
+			return ret;
+		}
+
+		string HeaderIndex(){
+
+			auto indexmd = path.buildPath("index.md");
+			if(indexmd.exists){
+				auto res = requestHTTP("https://api.github.com/markdown",
+					(scope req) {
+						import std.file;
+						req.method = HTTPMethod.POST;
+						req.writeJsonBody([
+							"text": readText(indexmd),
+							"mode":"markdown"
+						]);
+					}
+				);
+				return "<div class=\"jumbotron\"><div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div></div>";
+			}
+			return "";
+
+		}
+
+		string FileList(){
+			string ret;
+
+			//Sort DirEntries (directories first, alphabetical order after)
+			bool SortDirs(ref DirEntry a, ref DirEntry b){
+				if(a.isDir==b.isDir)return a.name<b.name;
+				return a.isDir>b.isDir;
+			}
+
+			DirEntry[] files;
+			foreach(f ; dirEntries(path, SpanMode.shallow))
+				files ~= f;
+
+			foreach(de ; files.sort!SortDirs){
+
+				if(de.baseName.matchFirst(m_blacklist)){
+					continue;
+				}
+
+				ret~="<tr>";
+
+				ret~="<td>";
+				if(de.isSymlink)	ret~="-&gt;";
+
+				if(de.isDir)		ret~="<div class=\"glyphicon glyphicon-folder-open\"></div>";
+				else if(de.isFile)	ret~="<div class=\"glyphicon glyphicon-file\"></div>";
+				else				ret~="<div class=\"glyphicon glyphicon-question-sign\"></div>";
+				ret~="</td>";
+
+				//Name
+				ret~="<td><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>";
+
+				//Size
+				auto size = de.size;
+				auto logsize = std.math.log10(de.size);
+
+
+				ret~=q"[
+					<td class="text-right text-nowrap">
+						<samp>]";
+
+							if(logsize<3.5)			ret~=(size).to!string~" <span class=\"unit-simple\">_B</span>";
+							else if(logsize<6.5)	ret~=(size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>";
+							else if(logsize<9.5)	ret~=(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>";
+							else					ret~=(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>";
+
+							ret~=q"[
+						</samp>
+					</td>
+					<td style="min-width: 20%">
+						<div class="progress" style="margin: 0;">
+							<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" style="width: ]"~((logsize-2>0?logsize-2:0)/0.08).to!string~q"[%">
+							</div>
+						</div>
+					</td>]";
+
+				ret~="</tr>\n";
+			}
+
+			return ret;
+		}
 
 		auto page = res.bodyWriter;
-		page.write(q"[
-			<!DOCTYPE html>
-			<html>
-				<head>
-					<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-				    <meta name="viewport" content="width=device-width, initial-scale=1">
+		auto map = [
+			"PAGE_TITLE" : path.baseName,
+			"NAVBAR_PATH" : NavbarPath(),
+			"HEADER_INDEX" : HeaderIndex(),
+			"FILE_LIST" : FileList()
+		];
 
-					<title>]"~path.baseName~q"[</title>
-					<link rel="stylesheet" href="/_served_pub/bootstrap/css/bootstrap.min.css" type="text/css"/>
-					<link rel="stylesheet" href="/_served_pub/style.css" type="text/css"/>
-				</head>
-				<body>
-					<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-						<div class="container">
-							<div class="navbar-header">
-								<a class="navbar-brand" href='https://github.com/CromFr/Served'>Served</a>
-							</div>
-							<div id="navbar" class="navbar-collapse collapse">
-								<ul class="nav navbar-nav">]"~{
-
-									string ret;
-									string link;
-									foreach(folder ; req.path.buildNormalizedPath.pathSplitter){
-										link = buildNormalizedPath(link, folder);
-
-										ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
-									}
-									return ret;
-
-								}()~q"[
-								</ul>
-							</div>
-						</div>
-					</nav>]"~{
-
-						auto indexmd = path.buildPath("index.md");
-						if(indexmd.exists){
-							auto res = requestHTTP("https://api.github.com/markdown",
-								(scope req) {
-									import std.file;
-									req.method = HTTPMethod.POST;
-									req.writeJsonBody([
-										"text": readText(indexmd),
-										"mode":"markdown"
-									]);
-								}
-							);
-							return "<div class=\"jumbotron\"><div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div></div>";
-						}
-						return "";
-
-					}()~q"[
-					<div class="container">
-						<div class="table-responsive">
-	            			<table class="table table-striped table-hover">
-								<thead>
-									<tr><th></th><th>Name</th><th colspan="2">Size</th></tr>
-								</thead>
-								<tbody>
-								<!-- FILE LIST -->]"
-								~'\n');
-
-								//Sort DirEntries (directories first, alphabetical order after)
-								bool SortDirs(ref DirEntry a, ref DirEntry b){
-									if(a.isDir==b.isDir)return a.name<b.name;
-									return a.isDir>b.isDir;
-								}
-								foreach(de ; files.sort!SortDirs){
-
-									if(de.baseName.matchFirst(m_blacklist)){
-										continue;
-									}
-
-									page.write("<tr>");
-
-									page.write("<td>");
-									if(de.isSymlink)	page.write("-&gt;");
-
-									if(de.isDir)		page.write("<div class=\"glyphicon glyphicon-folder-open\"></div>");
-									else if(de.isFile)	page.write("<div class=\"glyphicon glyphicon-file\"></div>");
-									else				page.write("<div class=\"glyphicon glyphicon-question-sign\"></div>");
-									page.write("</td>");
-
-									//Name
-									page.write("<td><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>");
-
-									//Size
-									auto size = de.size;
-									auto logsize = std.math.log10(de.size);
-
-
-									page.write(q"[
-										<td class="text-right text-nowrap">
-											<samp>]");
-
-												if(logsize<3.5)			page.write((size).to!string~" <span class=\"unit-simple\">_B</span>");
-												else if(logsize<6.5)	page.write((size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>");
-												else if(logsize<9.5)	page.write((size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>");
-												else					page.write((size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>");
-
-												page.write(q"[
-											</samp>
-										</td>
-										<td style="min-width: 20%">
-											<div class="progress" style="margin: 0;">
-												<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" style="width: ]"~((logsize-2>0?logsize-2:0)/0.08).to!string~q"[%">
-												</div>
-											</div>
-										</td>]");
-
-									page.write("</tr>\n");
-								}
-
-								page.write(q"[
-								<!-- ######### -->
-								</tbody>
-							</table>
-
-							<form enctype="multipart/form-data" method="POST">
-								<input type="hidden" name="FileUpload" value="1" />
-								<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-								Choose a file to upload: <input name="uploadedfile" type="file" /><br />
-								<input type="submit" value="Upload File" />
-							</form>
-							<div id="dropzone" class="fade well"></div>
-							<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
-						</div>
-					</div>
-					<script src="/_served_pub/jquery/jquery.min.js"></script>
-					<script src="/_served_pub/bootstrap/js/bootstrap.min.js"></script>
-				</body>
-			</html>
-		]");
+		page.write(m_tplPage.Generate(map));
 	}
 
 	void ServeFile(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
