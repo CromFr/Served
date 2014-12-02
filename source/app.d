@@ -10,14 +10,13 @@ import tpl;
 
 
 int main(string[] args) {
-	auto tplPage = new Template("Public/page.tpl");
 
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
 	settings.maxRequestSize = ulong.max;
 
-	auto f = new FtpRoot(args[1], tplPage, r"^\..*?$");
-	auto ftpPub = new FtpRoot("./Public", tplPage, r"^\..*?$");
+	auto f = new FtpRoot(args[1], "Public", r"^\..*?$");
+	auto ftpPub = new FtpRoot("./Public", "Public", r"^\..*?$");
 
 
 	auto router = new URLRouter;
@@ -35,12 +34,13 @@ int main(string[] args) {
 
 
 class FtpRoot{
-	this(in string path, ref Template tplPage, in string blacklist=""){
+	this(in string path, in string tplDir, in string blacklist=""){
 		m_de = DirEntry(path);
 		if(!m_de.isDir)
 			throw new Exception("Folder constructor must take an existing folder as argument");
 
-		m_tplPage = tplPage;
+		m_tplPage = new Template(buildPath(tplDir, "page.tpl"));
+		m_tplFile = new Template(buildPath(tplDir, "file.tpl"));
 
 		m_blacklist = regex(blacklist);
 	}
@@ -146,6 +146,7 @@ private:
 	Regex!char m_blacklist;
 	string m_prefix;
 	Template m_tplPage;
+	Template m_tplFile;
 
 	
 
@@ -200,46 +201,26 @@ private:
 			bool bDirSep = false;
 			int i = 0;
 			foreach(de ; files.sort!SortDirs){
-				string popoverId = "filepopover_"~(i++).to!string;
+				int id = i++;
 
 				if(de.baseName.matchFirst(m_blacklist)){
 					continue;
 				}
 
 				if(bDirSep==false && !de.isDir){
-					ret~="<tr><td class=\"bg-primary\" colspan=\"5\"></td></tr>\n";
+					ret~="<tr class=\"bg-primary\"><td colspan=\"10\"></td></tr>\n";
 					bDirSep = true;
 				}
 
-				ret~="<tr onclick=\"$('#"~popoverId~"').popover('show')\">";//TODO: escape spaces and special characters
 
-				ret~="<td class=\"text-nowrap\">";
-				if(de.isDir)		ret~="<div class=\"glyphicon glyphicon-folder-open\"></div>";
-				else if(de.isFile)	ret~="<div class=\"glyphicon glyphicon-file\"></div>";
-				else				ret~="<div class=\"glyphicon glyphicon-question-sign\"></div>";
 
-				if(de.isSymlink)	ret~=" <div class=\"glyphicon glyphicon-link\"></div>";
-				ret~="</td>";
+				string sIcon;
+				if(de.isDir)		sIcon="glyphicon glyphicon-folder-open";
+				else if(de.isFile)	sIcon="glyphicon glyphicon-file";
+				else				sIcon="glyphicon glyphicon-question-sign";
 
-				//Name
-				ret~="<td class=\"text-forcewrap\">";
-				ret~="<a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a>";
-				ret~=q"[
-				<div width="0px" id="]"~popoverId~q"[" class="popover popover-html" data-trigger="click focus" data-placement="bottom" data-toggle="popover">
-					<div class="arrow"></div>
-					<h3 class="popover-title">]"~de.baseName~q"[</h3>
-
-					<div class="popover-content">
-						<div class="input-group">
-							<input type="text" class="form-control">
-								<span class="input-group-btn">
-								<button class="btn btn-default" type="button">Go!</button>
-							</span>
-						</div>
-					</div>
-				</div>]";
-				ret~="</td>";
-
+				string sIconLink;
+				if(de.isSymlink)	sIconLink="glyphicon glyphicon-link";
 
 				string getFileRights(DirEntry de){
 					import core.sys.posix.unistd;
@@ -259,32 +240,25 @@ private:
 					return ret;
 				}
 
-				ret~="<td class=\"text-nowrap\"><kbd>"~getFileRights(de)~"</kbd></td>";
-
-				//Size
 				auto size = de.size;
 				auto logsize = std.math.log10(de.size);
 
-				ret~=q"[
-					<td class="text-right text-nowrap">
-						<samp>]";
+				string sizePretty;
+				if(logsize<3.5)			sizePretty=(size).to!string~" <span class=\"unit-simple\">_B</span>";
+				else if(logsize<6.5)	sizePretty=(size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>";
+				else if(logsize<9.5)	sizePretty=(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>";
+				else					sizePretty=(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>";
 
-							if(logsize<3.5)			ret~=(size).to!string~" <span class=\"unit-simple\">_B</span>";
-							else if(logsize<6.5)	ret~=(size/1_000).to!string~" <span class=\"unit-kilo\">KB</span>";
-							else if(logsize<9.5)	ret~=(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>";
-							else					ret~=(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>";
-
-							ret~=q"[
-						</samp>
-					</td>
-					<td style="min-width: 50px; width:100%;">
-						<div class="progress" style="margin: 0;">
-							<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" style="width: ]"~((logsize-2>0?logsize-2:0)/0.08).to!string~q"[%">
-							</div>
-						</div>
-					</td>]";
-
-				ret~="</tr>\n";
+				ret~= m_tplFile.Generate([
+					"ID": id.to!string,
+					"NAME": de.baseName,
+					"LINK": buildNormalizedPath(req.path, de.baseName),
+					"ICON": sIcon,
+					"ICON_LINK": sIconLink,
+					"RIGHTS": getFileRights(de),
+					"SIZE_PRETTY": sizePretty,
+					"SIZE_PERCENT": ((logsize-2>0?logsize-2:0)/0.08).to!string
+				]);
 			}
 
 			return ret;
