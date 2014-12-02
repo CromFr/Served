@@ -121,6 +121,15 @@ class FtpRoot{
 							ServeDir(req, res, DirEntry(reqFullPath));
 						}break;
 
+						case "rename":{
+							string curname = buildNormalizedPath(reqFullPath, req.form["file"]);
+							string newname = buildNormalizedPath(reqFullPath, req.form["name"]);
+							rename(curname, newname);
+							logInfo("Renamed: "~curname~" into "~newname);
+
+							ServeDir(req, res, DirEntry(reqFullPath));
+						}break;
+
 						default:
 							res.statusCode = 405;
 					}
@@ -208,7 +217,7 @@ private:
 				}
 
 				if(bDirSep==false && !de.isDir){
-					ret~="<tr class=\"bg-primary\"><td colspan=\"10\"></td></tr>\n";
+					ret~="<tr><td class=\"bg-primary\" colspan=\"10\"></td></tr>\n";
 					bDirSep = true;
 				}
 

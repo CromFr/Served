@@ -102,11 +102,11 @@
 						<h4 class="modal-title" id="modal_new_folder_label">New folder</h4>
 					</div>
 					<form id="form_new_folder" role="form" enctype="multipart/form-data" method="POST">
+						<input name="posttype" type="hidden" value="newfolder"/>
 						<div class="modal-body">
 							<div class="form-group">
 								<label>Folder name</label>
 								<input name="name" type="text" class="form-control" placeholder="Enter name">
-								<input name="posttype" type="hidden" value="newfolder"/>
 							</div>
 						</div>
 						<div class="modal-footer">
