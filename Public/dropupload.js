@@ -1,64 +1,103 @@
+
 var drop = document.getElementById('droparea');
 
 
-//Display modal
-document.addEventListener('dragenter', function(e){
-	e.preventDefault();
-	$('#modal_upload_file').modal();
-}, false);
+function cancel(e) {
+	if (e.preventDefault)
+		e.preventDefault();
+	return false;
+}
 
-//Hilight drop area
-drop.addEventListener('dragenter', function(e){
-	e.preventDefault();
 
-	if(drop.className.search(/\bhover\b/)==-1)
-		drop.className = drop.className+" hover";
-}, false);
+if (!window.FileReader)
+	drop.innerHTML = 'Your browser does not support the HTML5 FileReader.';
+else{
 
-//Un-hilight drop area
-drop.addEventListener('dragexit', function(e){
-	e.preventDefault();
+	addEventHandler(drop, 'dragover', cancel);
 
-	drop.className = drop.className.replace(/\bhover\b/,'');
-}, false);
+	//open modal
+	addEventHandler(window, 'dragenter', function(e){
+		cancel(e);
+		$('#modal_upload_file').modal('show');
+	});
 
-//Upload file
-drop.addEventListener('drop', function(e){
-	e.preventDefault();
-	
-	var dt = e.dataTransfer;
-	var files = dt.files;
-	for(var i=0; i<files.length; i++){
-		var file = files[i];
-		console.log(file);
+	//hilight
+	addEventHandler(drop, 'dragenter', function(e){
+		cancel(e);
+		$('#droparea').addClass("hover");
+	});
+	addEventHandler(drop, 'dragexit', function(e){
+		cancel(e);
+		$('#droparea').removeClass("hover");
+	});
+
+	//Upload file
+	addEventHandler(drop, 'drop', function(e){
+		e.preventDefault();
 		
-		var xhr = new XMLHttpRequest();
-		xhr.open('POST', window.location.pathname);
-		xhr.onload = function() {
-		//result.innerHTML += this.responseText;
-		//handleComplete(file.size);
-		};
-		xhr.onerror = function() {
-			//result.textContent = this.responseText;
-			//handleComplete(file.size);
-		};
-		xhr.upload.onprogress = function(event){
-			//var progress = totalProgress + event.loaded;
-			//console.log(progress / totalSize);
+		var dt = e.dataTransfer;
+		var files = dt.files;
+		for(var i=0; i<files.length; i++){
+			var file = files[i];
+			console.log(file);
+			
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', window.location.pathname);
+			xhr.onload = function() {
+				//result.innerHTML += this.responseText;
+				$('#modal_upload_progress').modal('hide');
+			};
+			xhr.onerror = function() {
+				//result.textContent = this.responseText;
+				console.log("Upload error !: "+this.responseText);
+				$('#modal_upload_progress').modal('hide');
+			};
+
+			xhr.upload.onprogress = function(event){
+				var totalProgress = 0;
+				var p = (100 * (totalProgress + event.loaded)/file.size).toFixed(2);
+				$('#modal_upload_progress_bar').css("width", p+"%");
+				$('#modal_upload_progress_bar').html(p+"%");
+				
+			}
+			xhr.upload.onloadstart = function(event) {
+				$('#modal_upload_file').modal('hide');
+				$('#modal_upload_progress').modal('show');
+			}
+
+			// création de l'objet FormData
+			var formData = new FormData(document.getElementById("form_upload_file"));
+			formData.append('uploadedfile', file);
+			xhr.send(formData);
 		}
-		xhr.upload.onloadstart = function(event) {
+
+		return false;
+	}, false);
+
+
+	Function.prototype.bindToEventHandler = function bindToEventHandler(){
+		var handler = this;
+		var boundParameters = Array.prototype.slice.call(arguments);
+		//create closure
+		return function (e) {
+			e = e || window.event; // get window.event if e argument missing (in IE)   
+			boundParameters.unshift(e);
+			handler.apply(this, boundParameters);
 		}
+	};
+}
 
-		// création de l'objet FormData
-		var formData = new FormData();
-		formData.append('uploadedfile', file);
-		xhr.send(formData);
-	}
-}, false);
 
-//Un-hilight drop area
-document.addEventListener('drop', function(e){
-	e.preventDefault();
 
-	drop.className = drop.className.replace(/\bhover\b/,'');
-}, false);
+function addEventHandler(obj, evt, handler) {
+  if (obj.addEventListener) {
+    // W3C method
+    obj.addEventListener(evt, handler, false);
+  } else if (obj.attachEvent) {
+    // IE method.
+    obj.attachEvent('on' + evt, handler);
+  } else {
+    // Old school method.
+    obj['on' + evt] = handler;
+  }
+}

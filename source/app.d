@@ -14,6 +14,7 @@ int main(string[] args) {
 
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
+	settings.maxRequestSize = ulong.max;
 
 	auto f = new FtpRoot(args[1], tplPage, r"^\..*?$");
 	auto ftpPub = new FtpRoot("./Public", tplPage, r"^\..*?$");

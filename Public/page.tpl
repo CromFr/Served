@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 		<title>{{PAGE_TITLE}}</title>
 		<link rel="stylesheet" href="/_served_pub/bootstrap/css/bootstrap.min.css" type="text/css"/>
@@ -53,10 +53,9 @@
 						<div id="droparea" class="fade well"></div>
 					</div>
 					<div class="modal-footer">
-						<form role="form" class="form-inline" enctype="multipart/form-data" method="POST">
-								<input class="input-file" name="uploadedfile" type="file">
-								<button class="btn btn-primary" type="submit">Upload</button>
-							<input type="hidden" name="FileUpload" value="1" />
+						<form id="form_upload_file" role="form" class="form-inline" enctype="multipart/form-data" method="POST">
+							<input class="input-file" name="uploadedfile" type="file"/>
+							<button class="btn btn-primary" type="submit">Upload</button>
 						</form>
 					</div>
 				</div>
@@ -74,7 +73,7 @@
 					</div>
 					<div class="modal-body">
 						<div class="progress" style="margin: 0;">
-							<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="">
+							<div id="modal_upload_progress_bar" class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="">
 							</div>
 						</div>
 					</div>
