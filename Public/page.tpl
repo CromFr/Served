@@ -63,6 +63,25 @@
 			</div>
 		</div>
 
+		<button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#modal_upload_progress">
+			Progress
+		</button>
+		<div id="modal_upload_progress" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="modal_upload_progress_label" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 id="modal_upload_progress_label" class="modal-title">Upload progress</h4>
+					</div>
+					<div class="modal-body">
+						<div class="progress" style="margin: 0;">
+							<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<footer class="spacer">
 		</footer>
 
