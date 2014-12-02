@@ -108,7 +108,7 @@ class FtpRoot{
 								auto targetpath = buildNormalizedPath(reqFullPath, f.filename.toString);
 
 								tmppath.copy(targetpath);
-								logInfo("Uploaded file: ",targetpath);
+								logInfo("Uploaded file: "~targetpath);
 							}
 							ServeDir(req, res, DirEntry(reqFullPath));
 						}break;
@@ -116,7 +116,7 @@ class FtpRoot{
 						case "newfolder":{
 							string path = buildNormalizedPath(reqFullPath, req.form["name"]);
 							mkdir(path);
-							logInfo("Created folder: ",path);
+							logInfo("Created folder: "~path);
 
 							ServeDir(req, res, DirEntry(reqFullPath));
 						}break;
