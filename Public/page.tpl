@@ -27,6 +27,11 @@
 		</div>
 
 		<div class="container">
+
+			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modal_upload_file">
+				<div class="glyphicon glyphicon-upload"></div> Upload file
+			</button>
+			
 			<table class="table table-striped table-hover">
 				<thead class="bg-primary">
 					<tr><th></th><th width="85%">Name</th><th>Rights</th><th width="15%" colspan="2">Size</th></tr>
@@ -35,10 +40,6 @@
 					{{FILE_LIST}}
 				</tbody>
 			</table>
-
-			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modal_upload_file">
-				<div class="glyphicon glyphicon-upload"></div> Upload file
-			</button>
 		</div>
 
 
@@ -62,9 +63,6 @@
 			</div>
 		</div>
 
-		<button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#modal_upload_progress">
-			Progress
-		</button>
 		<div id="modal_upload_progress" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-labelledby="modal_upload_progress_label" aria-hidden="true">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
@@ -76,6 +74,9 @@
 							<div id="modal_upload_progress_bar" class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="">
 							</div>
 						</div>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-danger" type="button" onclick="abortUpload()">Cancel</button>
 					</div>
 				</div>
 			</div>

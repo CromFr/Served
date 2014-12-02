@@ -1,12 +1,17 @@
 
 var drop = document.getElementById('droparea');
+var xhr;
 
+function abortUpload(){
+	xhr.abort();
+}
 
 function cancel(e) {
 	if (e.preventDefault)
 		e.preventDefault();
 	return false;
 }
+
 
 
 if (!window.FileReader)
@@ -35,33 +40,39 @@ else{
 	addEventHandler(drop, 'drop', function(e){
 		e.preventDefault();
 		
+		$('#droparea').removeClass("hover");
+		
 		var dt = e.dataTransfer;
 		var files = dt.files;
 		for(var i=0; i<files.length; i++){
 			var file = files[i];
 			console.log(file);
 			
-			var xhr = new XMLHttpRequest();
+			xhr = new XMLHttpRequest();
 			xhr.open('POST', window.location.pathname);
-			xhr.onload = function() {
-				//result.innerHTML += this.responseText;
-				$('#modal_upload_progress').modal('hide');
+			xhr.onload = function(){
+				$('#modal_upload_progress_bar').addClass("progress-bar-success");
+				setTimeout(location.reload(), 1000);
 			};
-			xhr.onerror = function() {
-				//result.textContent = this.responseText;
-				console.log("Upload error !: "+this.responseText);
+			xhr.onerror = function(e){
+				$('#modal_upload_progress_bar').addClass("progress-bar-danger");
+				
+				setTimeout(location.reload(), 5000);
+			};
+			xhr.onabort = function(){
 				$('#modal_upload_progress').modal('hide');
 			};
 
-			xhr.upload.onprogress = function(event){
-				var totalProgress = 0;
-				var p = (100 * (totalProgress + event.loaded)/file.size).toFixed(2);
+			xhr.upload.onprogress = function(e){
+				var p = (100 * e.loaded/file.size).toFixed(2);
 				$('#modal_upload_progress_bar').css("width", p+"%");
 				$('#modal_upload_progress_bar').html(p+"%");
 				
 			}
-			xhr.upload.onloadstart = function(event) {
+			xhr.upload.onloadstart = function(e){
 				$('#modal_upload_file').modal('hide');
+				$('#modal_upload_progress_bar').removeClass("progress-bar-danger");
+				$('#modal_upload_progress_bar').removeClass("progress-bar-success");
 				$('#modal_upload_progress').modal('show');
 			}
 
@@ -86,6 +97,7 @@ else{
 		}
 	};
 }
+
 
 
 
