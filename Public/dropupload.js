@@ -39,7 +39,7 @@ else{
 	//Upload file
 	addEventHandler(drop, 'drop', function(e){
 		e.preventDefault();
-		
+
 		$('#droparea').removeClass("hover");
 		
 		var dt = e.dataTransfer;
@@ -78,6 +78,7 @@ else{
 
 			// création de l'objet FormData
 			var formData = new FormData(document.getElementById("form_upload_file"));
+			formData.append('posttype', 'uploadfile');
 			formData.append('uploadedfile', file);
 			xhr.send(formData);
 		}

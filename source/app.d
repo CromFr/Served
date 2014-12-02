@@ -62,21 +62,22 @@ class FtpRoot{
 
 		if(!reqFullPath.exists){
 			res.statusCode = 404;
-			res.writeBody("<h1>404 : Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
+			res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
 			return;
 		}
 
 		//Forbid escaping from ftp root
 		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
 		if(relPath.front==".."){
-			res.writeBody("<h1>Access Denied : Never go up the root</h1>", "text/html; charset=UTF-8");
+			res.statusCode = 403;
+			res.writeBody("<h1>403: Forbidden : Never go up the root</h1>", "text/html; charset=UTF-8");
 			return;
 		}
 
 		//Apply the regex blacklist
 		foreach(dir ; pathSplitter(reqpath)){
 			if(dir.matchFirst(m_blacklist)){
-				res.writeBody("<h1>Access Denied by FTP Rule</h1>", "text/html; charset=UTF-8");
+				res.writeBody("<h1>403: Forbidden by FTP Rule</h1>", "text/html; charset=UTF-8");
 				return;
 			}
 		}
@@ -97,16 +98,33 @@ class FtpRoot{
 			case HTTPMethod.POST:{
 				writeln("POST: ",reqFullPath);
 				if(req.contentType=="multipart/form-data"){
-					auto files = req.files;
-					foreach(f ; files){
 
-						auto tmppath = f.tempPath.toNativeString;
-						auto targetpath = buildNormalizedPath(reqFullPath, f.filename.toString);
+					switch(req.form["posttype"]){
+						case "uploadfile":{
+							auto files = req.files;
+							foreach(f ; files){
 
-						logInfo("Uploaded file: ",targetpath);
-						tmppath.copy(targetpath);
+								auto tmppath = f.tempPath.toNativeString;
+								auto targetpath = buildNormalizedPath(reqFullPath, f.filename.toString);
+
+								tmppath.copy(targetpath);
+								logInfo("Uploaded file: ",targetpath);
+							}
+							ServeDir(req, res, DirEntry(reqFullPath));
+						}break;
+
+						case "newfolder":{
+							string path = buildNormalizedPath(reqFullPath, req.form["name"]);
+							mkdir(path);
+							logInfo("Created folder: ",path);
+
+							ServeDir(req, res, DirEntry(reqFullPath));
+						}break;
+
+						default:
+							res.statusCode = 405;
 					}
-					ServeDir(req, res, DirEntry(reqFullPath));
+
 
 
 				}

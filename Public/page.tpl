@@ -64,6 +64,7 @@
 					<div class="modal-footer">
 						<form id="form_upload_file" role="form" class="form-inline" enctype="multipart/form-data" method="POST">
 							<input class="input-file" name="uploadedfile" type="file"/>
+							<input  name="posttype" type="text" value="uploadfile"/>
 							<button class="btn btn-success" type="submit">Upload</button>
 							<button class="btn btn-danger" data-dismiss="modal">Cancel</button>
 						</form>
@@ -105,6 +106,7 @@
 							<div class="form-group">
 								<label>Folder name</label>
 								<input name="name" type="text" class="form-control" placeholder="Enter name">
+								<input name="posttype" type="hidden" value="newfolder"/>
 							</div>
 						</div>
 						<div class="modal-footer">
