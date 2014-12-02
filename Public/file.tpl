@@ -8,8 +8,16 @@
 		<a href="{{LINK}}">{{NAME}}</a>
 		<div id="file_popover_{{ID}}" class="popover popover-html" data-trigger="click focus" data-placement="bottom" data-toggle="popover">
 			<div class="arrow"></div>
-			<h3 class="popover-title primary">{{NAME}}</h3>
+			<h3 class="popover-title primary">File operations</h3>
 			<div class="popover-content">
+
+				<label>Full rights</label>
+				<div class="btn-group btn-group-justified" role="group">
+					<a type="button" class="btn btn-default {{RIGHT_USER_STYLE}}"><b>{{USER}}</b><br/>{{RIGHT_USER}}</a>
+					<a type="button" class="btn btn-default {{RIGHT_GROUP_STYLE}}"><b>{{GROUP}}</b><br/>{{RIGHT_GROUP}}</a>
+					<a type="button" class="btn btn-default {{RIGHT_OTHER_STYLE}}"><b>other</b><br/>{{RIGHT_OTHER}}</a>
+				</div>
+				<br/>
 				<form id="form_rename_{{ID}}" role="form" enctype="multipart/form-data" method="POST">
 					<input name="posttype" type="hidden" value="rename"/>
 					<input name="file" type="hidden" value="{{NAME}}"/>

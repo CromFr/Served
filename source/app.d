@@ -266,15 +266,42 @@ private:
 				else if(logsize<9.5)	sizePretty=(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>";
 				else					sizePretty=(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>";
 
+				//Rights
+				string GetRightString(int right){
+					string ret;
+					if(right&0b100)	ret~="r"; else ret~="-";
+					if(right&0b010)	ret~=" w "; else ret~=" - ";
+					if(right&0b001)	ret~="x"; else ret~="-";
+					return ret;
+				}
+				import core.sys.posix.unistd;
+				import core.sys.posix.pwd;
+				import core.sys.posix.grp;
+				auto stat = de.statBuf;
+				int rightType;
+				if(getuid() == stat.st_uid)		rightType=2;
+				else if(getgid() == stat.st_gid)rightType=1;
+				else							rightType=0;
+
 				ret~= m_tplFile.Generate([
 					"ID": id.to!string,
 					"NAME": de.baseName,
 					"LINK": buildNormalizedPath(req.path, de.baseName),
 					"ICON": sIcon,
 					"ICON_LINK": sIconLink,
-					"RIGHTS": getFileRights(de),
 					"SIZE_PRETTY": sizePretty,
-					"SIZE_PERCENT": ((logsize-2>0?logsize-2:0)/0.08).to!string
+					"SIZE_PERCENT": ((logsize-2>0?logsize-2:0)/0.08).to!string,
+
+					//Rights
+					"RIGHTS": GetRightString((stat.st_mode>>(3*rightType)) & 0b111),
+					"USER": getpwuid(stat.st_uid).pw_name.to!string,
+					"GROUP": getgrgid(stat.st_gid).gr_name.to!string,
+					"RIGHT_USER_STYLE": rightType==2 ? "active" : "disabled",
+					"RIGHT_USER": GetRightString((stat.st_mode>>6) & 0b111),
+					"RIGHT_GROUP_STYLE": rightType==1 ? "active" : "disabled",
+					"RIGHT_GROUP": GetRightString((stat.st_mode>>3) & 0b111),
+					"RIGHT_OTHER_STYLE": rightType==0 ? "active" : "disabled",
+					"RIGHT_OTHER": GetRightString((stat.st_mode>>0) & 0b111),
 				]);
 			}
 
