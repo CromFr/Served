@@ -130,6 +130,14 @@ class FtpRoot{
 							ServeDir(req, res, DirEntry(reqFullPath));
 						}break;
 
+						case "remove":{
+							string path = buildNormalizedPath(reqFullPath, req.form["file"]);
+							remove(path);
+							logInfo("Removed: "~path);
+
+							ServeDir(req, res, DirEntry(reqFullPath));
+						}break;
+
 						default:
 							res.statusCode = 405;
 					}

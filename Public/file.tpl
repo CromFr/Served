@@ -10,7 +10,7 @@
 			<div class="arrow"></div>
 			<h3 class="popover-title primary">{{NAME}}</h3>
 			<div class="popover-content">
-				<form id="form_new_folder" role="form" enctype="multipart/form-data" method="POST">
+				<form id="form_rename_{{ID}}" role="form" enctype="multipart/form-data" method="POST">
 					<input name="posttype" type="hidden" value="rename"/>
 					<input name="file" type="hidden" value="{{NAME}}"/>
 					<label>Rename</label>
@@ -19,6 +19,15 @@
 						<span class="input-group-btn">
 							<button class="btn btn-primary" type="submit"><div class="glyphicon glyphicon-ok"></div></button>
 						</span>
+					</div>
+				</form>
+				<br/>
+				<form id="form_remove_{{ID}}" role="form" enctype="multipart/form-data" method="POST">
+					<input name="posttype" type="hidden" value="remove"/>
+					<input name="file" type="hidden" value="{{NAME}}"/>
+					<label>Remove file</label>
+					<div class="input-group">
+						<button class="btn btn-danger pull-right" type="submit"><div class="glyphicon glyphicon-trash"></div> Remove</button>
 					</div>
 				</form>
 			</div>
