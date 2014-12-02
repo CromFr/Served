@@ -198,7 +198,9 @@ private:
 				files ~= f;
 
 			bool bDirSep = false;
+			int i = 0;
 			foreach(de ; files.sort!SortDirs){
+				string popoverId = "filepopover_"~(i++).to!string;
 
 				if(de.baseName.matchFirst(m_blacklist)){
 					continue;
@@ -209,7 +211,7 @@ private:
 					bDirSep = true;
 				}
 
-				ret~="<tr>";
+				ret~="<tr onclick=\"$('#"~popoverId~"').popover('show')\">";//TODO: escape spaces and special characters
 
 				ret~="<td class=\"text-nowrap\">";
 				if(de.isDir)		ret~="<div class=\"glyphicon glyphicon-folder-open\"></div>";
@@ -220,7 +222,23 @@ private:
 				ret~="</td>";
 
 				//Name
-				ret~="<td class=\"text-forcewrap\"><a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a></td>";
+				ret~="<td class=\"text-forcewrap\">";
+				ret~="<a href=\""~buildNormalizedPath(req.path, de.baseName)~"\">"~de.baseName~"</a>";
+				ret~=q"[
+				<div width="0px" id="]"~popoverId~q"[" class="popover popover-html" data-trigger="click focus" data-placement="bottom" data-toggle="popover">
+					<div class="arrow"></div>
+					<h3 class="popover-title">]"~de.baseName~q"[</h3>
+
+					<div class="popover-content">
+						<div class="input-group">
+							<input type="text" class="form-control">
+								<span class="input-group-btn">
+								<button class="btn btn-default" type="button">Go!</button>
+							</span>
+						</div>
+					</div>
+				</div>]";
+				ret~="</td>";
 
 
 				string getFileRights(DirEntry de){
