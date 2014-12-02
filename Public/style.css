@@ -54,3 +54,7 @@ footer.spacer{
 	width: 100%;
 	height: 40vh;
 }
+
+.jumbotron li{
+	font-size: 21px;
+}
