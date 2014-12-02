@@ -30,14 +30,20 @@
 					</div>
 				</form>
 				<br/>
-				<form id="form_remove_{{ID}}" role="form" enctype="multipart/form-data" method="POST">
-					<input name="posttype" type="hidden" value="remove"/>
-					<input name="file" type="hidden" value="{{NAME}}"/>
-					<label>Remove file</label>
-					<div class="input-group">
-						<button class="btn btn-danger pull-right" type="submit"><div class="glyphicon glyphicon-trash"></div> Remove</button>
-					</div>
-				</form>
+				<label>Remove/hide file</label>
+				<div class="btn-group-justified" role="group">
+					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="multipart/form-data" method="POST">
+						<button class="btn btn-danger" type="submit"><div class="glyphicon glyphicon-trash"></div> Remove</button>
+						<input name="posttype" type="hidden" value="remove"/>
+						<input name="file" type="hidden" value="{{NAME}}"/>
+					</form>
+					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="multipart/form-data" method="POST">
+						<input name="posttype" type="hidden" value="rename"/>
+						<input name="file" type="hidden" value="{{NAME}}"/>
+						<input name="name" type="hidden" value=".{{NAME}}"/>
+						<button class="btn btn-warning" type="submit"><div class="glyphicon glyphicon-lock"></div> Hide</button>
+					</form>
+				</div>
 			</div>
 		</div>
 	</td>
