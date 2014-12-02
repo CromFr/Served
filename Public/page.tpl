@@ -28,10 +28,18 @@
 
 		<div class="container">
 
-			<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modal_upload_file">
-				<div class="glyphicon glyphicon-upload"></div> Upload file
-			</button>
 			
+			<nav class="navbar navbar-default" role="navigation">
+				<div class="container">
+					<button type="button" class="btn btn-primary navbar-btn" data-toggle="modal" data-target="#modal_upload_file">
+						<div class="glyphicon glyphicon-upload"></div> Upload
+					</button>
+					<button type="button" class="btn btn-primary navbar-btn" data-toggle="modal" data-target="#modal_new_folder">
+						<div class="glyphicon glyphicon-folder-open"></div> New folder
+					</button>
+				</div>
+			</nav>
+
 			<table class="table table-striped table-hover">
 				<thead class="bg-primary">
 					<tr><th></th><th width="85%">Name</th><th>Rights</th><th width="15%" colspan="2">Size</th></tr>
@@ -56,7 +64,8 @@
 					<div class="modal-footer">
 						<form id="form_upload_file" role="form" class="form-inline" enctype="multipart/form-data" method="POST">
 							<input class="input-file" name="uploadedfile" type="file"/>
-							<button class="btn btn-primary" type="submit">Upload</button>
+							<button class="btn btn-success" type="submit">Upload</button>
+							<button class="btn btn-danger" data-dismiss="modal">Cancel</button>
 						</form>
 					</div>
 				</div>
@@ -78,6 +87,31 @@
 					<div class="modal-footer">
 						<button class="btn btn-danger" type="button" onclick="abortUpload()">Cancel</button>
 					</div>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div id="modal_new_folder" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal_new_folder_label" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span>&times;</span><span class="sr-only">Close</span></button>
+						<h4 class="modal-title" id="modal_new_folder_label">New folder</h4>
+					</div>
+					<form id="form_new_folder" role="form" enctype="multipart/form-data" method="POST">
+						<div class="modal-body">
+							<div class="form-group">
+								<label>Folder name</label>
+								<input name="name" type="text" class="form-control" placeholder="Enter name">
+							</div>
+						</div>
+						<div class="modal-footer">
+								<button class="btn btn-success" type="submit">New</button>
+								<button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
