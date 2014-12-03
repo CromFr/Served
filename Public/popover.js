@@ -14,6 +14,8 @@ $(".popover-html").each(function() {
 		placement: $(this).attr("data-placement")==null ? 'top' : $(this).attr("data-placement"),
 		selector: $(this).attr("data-selector")==null ? false : $(this).attr("data-selector"),
 		title: title,
-		trigger: $(this).attr("data-trigger")==null ? 'hover focus' : $(this).attr("data-trigger")
+		trigger: $(this).attr("data-trigger")==null ? 'hover focus' : $(this).attr("data-trigger"),
+
+		template: $(this).prop('outerHTML')
 	});
 });

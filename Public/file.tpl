@@ -6,9 +6,8 @@
 
 	<td class="text-forcewrap">
 		<a href="{{LINK}}">{{NAME}}</a>
-		<div id="file_popover_{{ID}}" class="popover popover-html" data-trigger="click focus" data-placement="bottom" data-toggle="popover">
+		<div id="file_popover_{{ID}}" class="popover popover-html" style="max-width: 350px;" data-trigger="click focus" data-placement="bottom" data-toggle="popover">
 			<div class="arrow"></div>
-			<h3 class="popover-title primary">File operations</h3>
 			<div class="popover-content">
 
 				<label>Full rights</label>
