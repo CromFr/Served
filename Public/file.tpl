@@ -1,4 +1,7 @@
-<tr onclick="$('#file_popover_{{ID}}').popover('show')">
+<tr onclick="$('#file_popover_{{ID}}').popover('show')" data-filename="{{NAME}}" data-isfolder="{{IS_FOLDER}}" draggable="true" ondragstart="onFileDrag(event)">
+
+
+
 
 	<td class="text-nowrap">
 		<div class="{{ICON}}"></div> <div class="{{ICON_LINK}}"></div>
@@ -22,7 +25,7 @@
 					<input name="file" type="hidden" value="{{NAME}}"/>
 					<label>Rename</label>
 					<div class="input-group">
-						<input name="name" type="text" class="form-control" placeholder="New name" value="{{NAME}}">
+						<input name="name" type="text" class="form-control" placeholder="New name" value="{{NAME}}"/>
 						<span class="input-group-btn">
 							<button class="btn btn-primary" type="submit"><div class="glyphicon glyphicon-ok"></div></button>
 						</span>

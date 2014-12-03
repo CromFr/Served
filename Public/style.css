@@ -2,20 +2,15 @@ body {
 	padding-top: 50px;
 }
 
-#droparea {
+#droparea{
 	width: 100%;
 	height: 100px;
-}
-#droparea.hover {
-	background: #AAFFAA;
-}
-#droparea.fade {
-	-webkit-transition: all 0.3s ease-out;
-	-moz-transition: all 0.3s ease-out;
-	-ms-transition: all 0.3s ease-out;
-	-o-transition: all 0.3s ease-out;
-	transition: all 0.3s ease-out;
 	opacity: 1;
+	transition: background-color 0.3s ease-out;
+}
+#droparea.hover,
+tr.hover {
+	background-color: #aaffaa !important;
 }
 
 

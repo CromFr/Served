@@ -96,7 +96,7 @@ class FtpRoot{
 			}break;
 
 			case HTTPMethod.POST:{
-				writeln("POST: ",reqFullPath);
+				writeln("POST ",req.form["posttype"],": ",reqFullPath);
 				if(req.contentType=="multipart/form-data"){
 
 					switch(req.form["posttype"]){
@@ -134,6 +134,15 @@ class FtpRoot{
 							string path = buildNormalizedPath(reqFullPath, req.form["file"]);
 							remove(path);
 							logInfo("Removed: "~path);
+
+							ServeDir(req, res, DirEntry(reqFullPath));
+						}break;
+
+						case "move":{
+							string file = buildNormalizedPath(reqFullPath, req.form["file"]);
+							string dest = buildNormalizedPath(reqFullPath, req.form["destination"], req.form["file"]);
+							file.rename(dest);
+							logInfo("Moved: "~file~" to "~dest);
 
 							ServeDir(req, res, DirEntry(reqFullPath));
 						}break;
@@ -291,6 +300,7 @@ private:
 					"ICON_LINK": sIconLink,
 					"SIZE_PRETTY": sizePretty,
 					"SIZE_PERCENT": ((logsize-2>0?logsize-2:0)/0.08).to!string,
+					"IS_FOLDER": de.isDir ? "true" : "false",
 
 					//Rights
 					"RIGHTS": GetRightString((stat.st_mode>>(3*rightType)) & 0b111),

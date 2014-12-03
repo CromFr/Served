@@ -126,5 +126,6 @@
 		<script src="/_served_pub/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
 		<script src="/_served_pub/popover.js" type="text/javascript"></script>
+		<script src="/_served_pub/filedrag.js" type="text/javascript"></script>
 	</body>
 </html>
