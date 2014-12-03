@@ -57,111 +57,101 @@ class FtpRoot{
 	}
 
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
-		auto reqpath = buildNormalizedPath(req.path).chompPrefix(buildNormalizedPath(m_prefix));
-		auto reqFullPath = buildNormalizedPath(m_de, "./"~reqpath);
 
-		if(!reqFullPath.exists){
-			res.statusCode = 404;
-			res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
-			return;
-		}
+		try{
+			auto reqpath = buildNormalizedPath(req.path).chompPrefix(buildNormalizedPath(m_prefix));
 
-		//Forbid escaping from ftp root
-		auto relPath = relativePath(reqFullPath, m_de).pathSplitter;
-		if(relPath.front==".."){
-			res.statusCode = 403;
-			res.writeBody("<h1>403: Forbidden : Never go up the root</h1>", "text/html; charset=UTF-8");
-			return;
-		}
+			auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
 
-		//Apply the regex blacklist
-		foreach(dir ; pathSplitter(reqpath)){
-			if(dir.matchFirst(m_blacklist)){
-				res.writeBody("<h1>403: Forbidden by FTP Rule</h1>", "text/html; charset=UTF-8");
+			if(!reqFullPath.exists){
+				res.statusCode = 404;
+				res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
 				return;
 			}
-		}
+			
 
-		switch(req.method){
-			case HTTPMethod.GET:{
-				writeln("GET:  ",reqFullPath);
+			switch(req.method){
+				case HTTPMethod.GET:{
+					writeln("GET:  ",reqFullPath);
 
-				if(reqFullPath.isDir){
-					ServeDir(req, res, DirEntry(reqFullPath));
-				}
-				else{
-					ServeFile(req, res, DirEntry(reqFullPath));
-				}
-
-			}break;
-
-			case HTTPMethod.POST:{
-				writeln("POST ",req.form["posttype"],": ",reqFullPath);
-				if(req.contentType=="multipart/form-data"){
-
-					switch(req.form["posttype"]){
-						case "uploadfile":{
-							auto files = req.files;
-							foreach(f ; files){
-
-								auto tmppath = f.tempPath.toNativeString;
-								auto targetpath = buildNormalizedPath(reqFullPath, f.filename.toString);
-
-								tmppath.copy(targetpath);
-								logInfo("Uploaded file: "~targetpath);
-							}
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}break;
-
-						case "newfolder":{
-							string path = buildNormalizedPath(reqFullPath, req.form["name"]);
-							mkdir(path);
-							logInfo("Created folder: "~path);
-
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}break;
-
-						case "rename":{
-							string curname = buildNormalizedPath(reqFullPath, req.form["file"]);
-							string newname = buildNormalizedPath(reqFullPath, req.form["name"]);
-							rename(curname, newname);
-							logInfo("Renamed: "~curname~" into "~newname);
-
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}break;
-
-						case "remove":{
-							string path = buildNormalizedPath(reqFullPath, req.form["file"]);
-							remove(path);
-							logInfo("Removed: "~path);
-
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}break;
-
-						case "move":{
-							string file = buildNormalizedPath(reqFullPath, req.form["file"]);
-							string dest = buildNormalizedPath(reqFullPath, req.form["destination"], req.form["file"]);
-							file.rename(dest);
-							logInfo("Moved: "~file~" to "~dest);
-
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}break;
-
-						default:
-							res.statusCode = 405;
+					if(reqFullPath.isDir){
+						ServeDir(req, res, DirEntry(reqFullPath));
+					}
+					else{
+						ServeFile(req, res, DirEntry(reqFullPath));
 					}
 
+				}break;
+
+				case HTTPMethod.POST:{
+					writeln("POST ",req.form["posttype"],": ",reqFullPath);
+					if(req.contentType=="multipart/form-data"){
+
+						switch(req.form["posttype"]){
+							case "uploadfile":{
+								auto files = req.files;
+								foreach(f ; files){
+
+									auto tmppath = f.tempPath.toNativeString;
+									auto targetpath = buildSecuredPath(reqFullPath, f.filename.toString);
+
+									tmppath.copy(targetpath);
+									logInfo("Uploaded file: "~targetpath);
+								}
+								ServeDir(req, res, DirEntry(reqFullPath));
+							}break;
+
+							case "newfolder":{
+								string path = buildSecuredPath(reqFullPath, req.form["name"]);
+								mkdir(path);
+								logInfo("Created folder: "~path);
+
+								ServeDir(req, res, DirEntry(reqFullPath));
+							}break;
+
+							case "rename":{
+								string curname = buildSecuredPath(reqFullPath, req.form["file"]);
+								string newname = buildSecuredPath(reqFullPath, req.form["name"]);
+								rename(curname, newname);
+								logInfo("Renamed: "~curname~" into "~newname);
+
+								ServeDir(req, res, DirEntry(reqFullPath));
+							}break;
+
+							case "remove":{
+								string path = buildSecuredPath(reqFullPath, req.form["file"]);
+								remove(path);
+								logInfo("Removed: "~path);
+
+								ServeDir(req, res, DirEntry(reqFullPath));
+							}break;
+
+							case "move":{
+								string file = buildSecuredPath(reqFullPath, req.form["file"]);
+								string dest = buildSecuredPath(reqFullPath, req.form["destination"], req.form["file"]);
+								file.rename(dest);
+								logInfo("Moved: "~file~" to "~dest);
+
+								ServeDir(req, res, DirEntry(reqFullPath));
+							}break;
+
+							default:
+								res.statusCode = 405;
+						}
 
 
-				}
 
-			}break;
+					}
 
-			default:
-				writeln("Unhandled method: ",req.method);
+				}break;
+
+				default:
+					writeln("Unhandled method: ",req.method);
+			}
 		}
-
-
+		catch(SecuredPathException e){
+			res.writeBody("<h1>403: Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
+		}
 	}
 
 	
@@ -173,6 +163,34 @@ private:
 	string m_prefix;
 	Template m_tplPage;
 	Template m_tplFile;
+
+	class SecuredPathException : Exception{
+		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null){
+			super(msg, file, line, next);
+		}
+	}
+	string buildSecuredPath(VT...)(VT path){
+		auto normpath = buildNormalizedPath(path);
+		auto relPath = normpath.relativePath(m_de);
+		auto relPathSplit = relPath.pathSplitter;
+
+		//Forbid escaping from ftp root
+		writeln(relPathSplit);
+		if(relPathSplit.front==".."){
+			throw new SecuredPathException("You cannot go under the file-server root directory");
+		}
+
+		//Apply the regex blacklist
+		if(relPath != "."){
+			foreach(dir ; relPathSplit){
+				if(dir.matchFirst(m_blacklist)){
+					throw new SecuredPathException("The file/folder '"~dir.to!string~"' is blacklisted");
+				}
+			}
+		}
+
+		return normpath;
+	}
 
 	
 
