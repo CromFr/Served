@@ -59,7 +59,7 @@
 						<h4 class="modal-title" id="modal_upload_file_label">Drop file here</h4>
 					</div>
 					<div class="modal-body">
-						<div id="droparea" class="fade well"></div>
+						<div id="droparea" class="well"><div class="glyphicon glyphicon-save" style="width: 50%"></div></div>
 					</div>
 					<div class="modal-footer">
 						<form id="form_upload_file" role="form" class="form-inline" enctype="multipart/form-data" method="POST">
