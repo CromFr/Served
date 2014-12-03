@@ -1,4 +1,6 @@
 
+var DRAGFILE_DATA;
+
 function cancel(e) {
 	if (e.preventDefault)
 		e.preventDefault();
@@ -6,13 +8,15 @@ function cancel(e) {
 }
 
 function onFileDrag(e){
-
+	console.log(e);
 	var data = {
 		type: "filerowdrag",
 		file: $(e.target).attr("data-filename")
 	};
 
-	e.dataTransfer.setData("url", JSON.stringify(data));
+	DRAGFILE_DATA=data;
+	// e.dataTransfer.setData("text", JSON.stringify(data));
+	e.dataTransfer.setData("text", "Fuck you browser");//A pinch of magic to make firefox start dragging the item
 }
 
 
@@ -20,8 +24,10 @@ function onFileDrag(e){
 addEventHandler(document, "dragenter", function(e){
 	var targettr = $(e.target).parent(".filerow");
 
-	if(targettr!=null && IsJson(e.dataTransfer.getData("url"))){
-		var data = JSON.parse(e.dataTransfer.getData("url"));
+	// if(targettr!=null && IsJson(e.dataTransfer.getData("text"))){
+	if(targettr!=null && DRAGFILE_DATA!=null){
+		// var data = JSON.parse(e.dataTransfer.getData("text"));
+		var data = DRAGFILE_DATA;
 
 		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
 			cancel(e);
@@ -38,16 +44,19 @@ addEventHandler(document, "dragenter", function(e){
 			});
 		}
 	}
-	
-
-
+});
+addEventHandler(document, "dragend", function(e){
+	console.log(e);
+	DRAGFILE_DATA = null;
 });
 
 addEventHandler(document, "drop", function(e){
 	var targettr = $(e.target).parent(".filerow");
 
-	if(targettr!=null && IsJson(e.dataTransfer.getData("url"))){
-		var data = JSON.parse(e.dataTransfer.getData("url"));
+	// if(targettr!=null && IsJson(e.dataTransfer.getData("text"))){
+	if(targettr!=null && DRAGFILE_DATA!=null){
+		// var data = JSON.parse(e.dataTransfer.getData("text"));
+		var data = DRAGFILE_DATA;
 
 		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
 			cancel(e);
@@ -62,6 +71,8 @@ addEventHandler(document, "drop", function(e){
 			formData.append('file', data.file);
 			formData.append('destination', targettr.attr("data-filename"));
 			xhr.send(formData);
+
+			DRAGFILE_DATA = null;
 			return false;
 		}
 	}
