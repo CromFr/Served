@@ -6,50 +6,66 @@ function cancel(e) {
 }
 
 function onFileDrag(e){
-	e.dataTransfer.setData("dragtype", "filerow");
-	e.dataTransfer.setData("dragfilename", $(e.target).attr("data-filename"));
+
+	var data = {
+		type: "filerowdrag",
+		file: $(e.target).attr("data-filename")
+	};
+
+	e.dataTransfer.setData("url", JSON.stringify(data));
 }
 
 
 
 addEventHandler(document, "dragenter", function(e){
+	var targettr = $(e.target).parent(".filerow");
 
-	var targettr = $(e.target).parent("tr");
-	if(e.dataTransfer.getData("dragtype")=="filerow" && targettr.attr("data-isfolder")=="true"){
-		cancel(e);
-		targettr.addClass("hover");
+	if(targettr!=null && IsJson(e.dataTransfer.getData("url"))){
+		var data = JSON.parse(e.dataTransfer.getData("url"));
 
-		var evContainer = e.target;
-
-		addEventHandler(evContainer, "dragover", function(e){
+		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
 			cancel(e);
-		});
+			targettr.addClass("hover");
 
-		addEventHandler(evContainer, "dragexit", function(e){
-			targettr.removeClass("hover");
-			removeEventListener("drop", evContainer, true);
-			removeEventListener("drop", evContainer, false);
-		});
+			var evContainer = e.target;
+
+			addEventHandler(evContainer, "dragover", function(e){
+				cancel(e);
+			});
+
+			addEventHandler(evContainer, "dragexit", function(e){
+				targettr.removeClass("hover");
+				removeEventListener("drop", evContainer, true);
+				removeEventListener("drop", evContainer, false);
+			});
+		}
 	}
+	
+
+
 });
 
 addEventHandler(document, "drop", function(e){
+	var targettr = $(e.target).parent(".filerow");
 
-	var targettr = $(e.target).parent("tr");
-	if(e.dataTransfer.getData("dragtype")=="filerow" && targettr.attr("data-isfolder")=="true"){
-		cancel(e);
+	if(targettr!=null && IsJson(e.dataTransfer.getData("url"))){
+		var data = JSON.parse(e.dataTransfer.getData("url"));
 
-		targettr.removeClass("hover");
+		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
+			cancel(e);
 
-		xhr = new XMLHttpRequest();
-		xhr.open('POST', window.location.pathname);
+			targettr.removeClass("hover");
 
-		var formData = new FormData();
-		formData.append('posttype', 'move');
-		formData.append('file', e.dataTransfer.getData("dragfilename"));
-		formData.append('destination', targettr.attr("data-filename"));
-		xhr.send(formData);
-		return false;
+			xhr = new XMLHttpRequest();
+			xhr.open('POST', window.location.pathname);
+
+			var formData = new FormData();
+			formData.append('posttype', 'move');
+			formData.append('file', data.file);
+			formData.append('destination', targettr.attr("data-filename"));
+			xhr.send(formData);
+			return false;
+		}
 	}
 });
 
@@ -62,7 +78,15 @@ addEventHandler(document, "drop", function(e){
 
 
 
-
+function IsJson(str) {
+	try{
+		JSON.parse(str);
+	}
+	catch(e){
+		return false;
+	}
+	return true;
+}
 function addEventHandler(obj, evt, handler) {
 	if (obj.addEventListener)// W3C method
 		obj.addEventListener(evt, handler, false);

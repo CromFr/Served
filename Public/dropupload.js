@@ -12,6 +12,15 @@ function cancel(e) {
 	return false;
 }
 
+function getIsFileDrag(e){
+	if(e.dataTransfer.types.contains)
+		return e.dataTransfer.types.contains("Files");
+	else if(e.dataTransfer.types.indexOf)
+		return e.dataTransfer.types.indexOf("Files")>=0;
+	else
+		console.warn('Your browser does not support e.dataTransfer introspection');
+	return false;
+}
 
 
 if (!window.FileReader)
@@ -22,7 +31,7 @@ else{
 
 	//open modal
 	addEventHandler(document, 'dragenter', function(e){
-		if(e.dataTransfer.getData("dragtype")!="filerow"){
+		if(getIsFileDrag(e)){
 			cancel(e);
 			$('#modal_upload_file').modal('show');
 		}
@@ -30,13 +39,13 @@ else{
 
 	//hilight
 	addEventHandler(drop, 'dragenter', function(e){
-		if(e.dataTransfer.getData("dragtype")!="filerow"){
+		if(getIsFileDrag(e)){
 			cancel(e);
 			$('#droparea').addClass("hover");
 		}
 	});
 	addEventHandler(drop, 'dragexit', function(e){
-		if(e.dataTransfer.getData("dragtype")!="filerow"){
+		if(getIsFileDrag(e)){
 			cancel(e);
 			$('#droparea').removeClass("hover");
 		}
@@ -44,7 +53,7 @@ else{
 
 	//Upload file
 	addEventHandler(drop, 'drop', function(e){
-		if(e.dataTransfer.getData("dragtype")!="filerow"){
+		if(getIsFileDrag(e)){
 
 			cancel(e);
 			$('#droparea').removeClass("hover");
@@ -53,7 +62,6 @@ else{
 			var files = dt.files;
 			for(var i=0; i<files.length; i++){
 				var file = files[i];
-				console.log(file);
 				
 				xhr = new XMLHttpRequest();
 				xhr.open('POST', window.location.pathname);
@@ -117,4 +125,13 @@ function addEventHandler(obj, evt, handler) {
 		obj.attachEvent('on' + evt, handler);
 	else// Old school method.
 		obj['on' + evt] = handler;
+}
+function getIsFileDrag(e){
+	if(e.dataTransfer.types.contains)
+		return e.dataTransfer.types.contains("Files");
+	else if(e.dataTransfer.types.indexOf)
+		return e.dataTransfer.types.indexOf("Files")>=0;
+	else
+		console.warn('Your browser does not support e.dataTransfer introspection');
+	return false;
 }

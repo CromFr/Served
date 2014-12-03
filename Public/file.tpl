@@ -1,4 +1,4 @@
-<tr onclick="$('#file_popover_{{ID}}').popover('show')" data-filename="{{NAME}}" data-isfolder="{{IS_FOLDER}}" draggable="true" ondragstart="onFileDrag(event)">
+<tr class="filerow" onclick="$('#file_popover_{{ID}}').popover('show')" data-filename="{{NAME}}" data-isfolder="{{IS_FOLDER}}" draggable="true" ondragstart="onFileDrag(event)">
 
 
 
