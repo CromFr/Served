@@ -35,8 +35,6 @@ addEventHandler(document, "dragenter", function(e){
 
 			addEventHandler(evContainer, "dragexit", function(e){
 				targettr.removeClass("hover");
-				removeEventListener("drop", evContainer, true);
-				removeEventListener("drop", evContainer, false);
 			});
 		}
 	}
