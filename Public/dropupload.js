@@ -44,7 +44,7 @@ else{
 			$('#droparea').addClass("hover");
 		}
 	});
-	addEventHandler(drop, 'dragexit', function(e){
+	addEventHandler(drop, 'dragleave', function(e){
 		if(getIsFileDrag(e)){
 			cancel(e);
 			$('#droparea').removeClass("hover");

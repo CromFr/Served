@@ -8,7 +8,6 @@ function cancel(e) {
 }
 
 function onFileDrag(e){
-	console.log(e);
 	var data = {
 		type: "filerowdrag",
 		file: $(e.target).attr("data-filename")
@@ -29,7 +28,7 @@ addEventHandler(document, "dragenter", function(e){
 		// var data = JSON.parse(e.dataTransfer.getData("text"));
 		var data = DRAGFILE_DATA;
 
-		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
+		if(data.type=="filerowdrag" && data.file!=targettr.attr("data-filename") && targettr.attr("data-isfolder")=="true"){
 			cancel(e);
 			targettr.addClass("hover");
 
@@ -39,15 +38,11 @@ addEventHandler(document, "dragenter", function(e){
 				cancel(e);
 			});
 
-			addEventHandler(evContainer, "dragexit", function(e){
+			addEventHandler(evContainer, "dragleave", function(e){
 				targettr.removeClass("hover");
 			});
 		}
 	}
-});
-addEventHandler(document, "dragend", function(e){
-	console.log(e);
-	DRAGFILE_DATA = null;
 });
 
 addEventHandler(document, "drop", function(e){
@@ -58,7 +53,7 @@ addEventHandler(document, "drop", function(e){
 		// var data = JSON.parse(e.dataTransfer.getData("text"));
 		var data = DRAGFILE_DATA;
 
-		if(data.type=="filerowdrag" && targettr.attr("data-isfolder")=="true"){
+		if(data.type=="filerowdrag" && data.file!=targettr.attr("data-filename") && targettr.attr("data-isfolder")=="true"){
 			cancel(e);
 
 			targettr.removeClass("hover");
