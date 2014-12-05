@@ -1,0 +1,22 @@
+{
+	"port": "8080",
+
+	"/":{
+		"root": "/srv/ftp",
+
+		"default_user": "lcda",
+
+		"/a/b":{
+			"root": "yolo",
+			"default_user": "ab"
+		},
+		"home":{
+			"root": "/home/crom",
+			"port": "443",
+			"default_user": "crom",
+			"users_read": ["crom"],
+			"users_write": ["crom"]
+		}
+	}
+
+}

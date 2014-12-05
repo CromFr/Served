@@ -62,6 +62,9 @@ class Config{
 					return GetPathConfigRecurse(targetpath.relativePath(keypath), value, ret);
 				}
 			}
+
+			//TODO: handle path that are longer than roots
+			//Check ../path behavior
 			return ret;
 		}
 
