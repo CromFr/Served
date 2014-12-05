@@ -15,8 +15,8 @@ int main(string[] args) {
 	settings.port = 8080;
 	settings.maxRequestSize = ulong.max;
 
-	auto f = new FtpRoot(args[1], "Public", r"^\..*?$");
-	auto ftpPub = new FtpRoot("./Public", "Public", r"^\..*?$");
+	auto f = new FtpRoot(args[1], "Public", r"^\.[^\.].*?$");
+	auto ftpPub = new FtpRoot("./Public", "Public", r"^\.[^\.].*?$");
 
 
 	auto router = new URLRouter;
@@ -239,9 +239,11 @@ private:
 			}
 
 			DirEntry[] files;
+			files ~= DirEntry("..");
 			foreach(f ; dirEntries(path, SpanMode.shallow))
 				files ~= f;
 
+			bool bPrevSep = false;
 			bool bDirSep = false;
 			int i = 0;
 			foreach(de ; files.sort!SortDirs){
@@ -251,6 +253,10 @@ private:
 					continue;
 				}
 
+				if(bPrevSep==false && de.name!=".."){
+					ret~="<tr><td class=\"bg-primary\" colspan=\"10\"></td></tr>\n";
+					bPrevSep = true;
+				}
 				if(bDirSep==false && !de.isDir){
 					ret~="<tr><td class=\"bg-primary\" colspan=\"10\"></td></tr>\n";
 					bDirSep = true;
