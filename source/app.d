@@ -7,16 +7,19 @@ import std.regex;
 import std.algorithm;
 
 import tpl;
+import config;
 
 
 int main(string[] args) {
+
+	auto cfg = new Config("config.json");
 
 	auto settings = new HTTPServerSettings;
 	settings.port = 8080;
 	settings.maxRequestSize = ulong.max;
 
-	auto f = new FtpRoot(args[1], "Public", r"^\.[^\.].*?$");
-	auto ftpPub = new FtpRoot("./Public", "Public", r"^\.[^\.].*?$");
+	auto f = new FtpRoot(args[1], "Public", r"^\..*?$");
+	auto ftpPub = new FtpRoot("./Public", "Public", r"^\..*?$");
 
 
 	auto router = new URLRouter;
@@ -249,7 +252,7 @@ private:
 			foreach(de ; files.sort!SortDirs){
 				int id = i++;
 
-				if(de.baseName.matchFirst(m_blacklist)){
+				if(de.name!=".." && de.baseName.matchFirst(m_blacklist)){
 					continue;
 				}
 
