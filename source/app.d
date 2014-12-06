@@ -275,24 +275,6 @@ private:
 				string sIconLink;
 				if(de.isSymlink)	sIconLink="glyphicon glyphicon-link";
 
-				string getFileRights(DirEntry de){
-					import core.sys.posix.unistd;
-
-					auto st = de.statBuf;
-
-					int r;
-					if(getuid() == st.st_uid)		r = (st.st_mode>>6) & 0b111;
-					else if(getgid() == st.st_gid)	r = (st.st_mode>>3) & 0b111;
-					else							r = (st.st_mode) & 0b111;
-
-					string ret;
-					if(r&0b100)	ret~="r"; else ret~="-";
-					if(r&0b010)	ret~="w"; else ret~="-";
-					if(r&0b001)	ret~="x"; else ret~="-";
-
-					return ret;
-				}
-
 				auto size = de.size;
 				auto logsize = std.math.log10(de.size);
 
@@ -302,24 +284,7 @@ private:
 				else if(logsize<9.5)	sizePretty=(size/1_000_000).to!string~" <span class=\"unit-mega\">MB</span>";
 				else					sizePretty=(size/1_000_000_000).to!string~" <span class=\"unit-giga\">GB</span>";
 
-				//Rights
-				string GetRightString(int right){
-					string ret;
-					if(right&0b100)	ret~="r"; else ret~="-";
-					if(right&0b010)	ret~=" w "; else ret~=" - ";
-					if(right&0b001)	ret~="x"; else ret~="-";
-					return ret;
-				}
-				import core.sys.posix.unistd;
-				import core.sys.posix.pwd;
-				import core.sys.posix.grp;
-				auto stat = de.statBuf;
-				int rightType;
-				if(getuid() == stat.st_uid)		rightType=2;
-				else if(getgid() == stat.st_gid)rightType=1;
-				else							rightType=0;
-
-				ret~= m_tplFile.Generate([
+				string[string] map = [
 					"ID": id.to!string,
 					"NAME": de.baseName,
 					"LINK": buildNormalizedPath(req.path, de.baseName),
@@ -328,18 +293,46 @@ private:
 					"SIZE_PRETTY": sizePretty,
 					"SIZE_PERCENT": ((logsize-2>0?logsize-2:0)/0.08).to!string,
 					"IS_FOLDER": de.isDir ? "true" : "false",
+				];
 
+				void MergeMaps(T)(ref T mapA, in T mapB){
+					foreach(k, v ; mapB){
+						mapA[k] = v;
+					}
+				}
+
+				version(POSIX){
 					//Rights
-					"RIGHTS": GetRightString((stat.st_mode>>(3*rightType)) & 0b111),
-					"USER": getpwuid(stat.st_uid).pw_name.to!string,
-					"GROUP": getgrgid(stat.st_gid).gr_name.to!string,
-					"RIGHT_USER_STYLE": rightType==2 ? "active" : "disabled",
-					"RIGHT_USER": GetRightString((stat.st_mode>>6) & 0b111),
-					"RIGHT_GROUP_STYLE": rightType==1 ? "active" : "disabled",
-					"RIGHT_GROUP": GetRightString((stat.st_mode>>3) & 0b111),
-					"RIGHT_OTHER_STYLE": rightType==0 ? "active" : "disabled",
-					"RIGHT_OTHER": GetRightString((stat.st_mode>>0) & 0b111),
-				]);
+					string GetRightString(int right){
+						string ret;
+						if(right&0b100)	ret~="r"; else ret~="-";
+						if(right&0b010)	ret~=" w "; else ret~=" - ";
+						if(right&0b001)	ret~="x"; else ret~="-";
+						return ret;
+					}
+					import core.sys.posix.unistd;
+					import core.sys.posix.pwd;
+					import core.sys.posix.grp;
+					auto stat = de.statBuf;
+					int rightType;
+					if(getuid() == stat.st_uid)		rightType=2;
+					else if(getgid() == stat.st_gid)rightType=1;
+					else							rightType=0;
+
+					MergeMaps(map, [
+						"RIGHTS": GetRightString((stat.st_mode>>(3*rightType)) & 0b111),
+						"USER": getpwuid(stat.st_uid).pw_name.to!string,
+						"GROUP": getgrgid(stat.st_gid).gr_name.to!string,
+						"RIGHT_USER_STYLE": rightType==2 ? "active" : "disabled",
+						"RIGHT_USER": GetRightString((stat.st_mode>>6) & 0b111),
+						"RIGHT_GROUP_STYLE": rightType==1 ? "active" : "disabled",
+						"RIGHT_GROUP": GetRightString((stat.st_mode>>3) & 0b111),
+						"RIGHT_OTHER_STYLE": rightType==0 ? "active" : "disabled",
+						"RIGHT_OTHER": GetRightString((stat.st_mode>>0) & 0b111),
+					]);
+				}
+
+				ret~= m_tplFile.Generate(map);
 			}
 
 			return ret;
