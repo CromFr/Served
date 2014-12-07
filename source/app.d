@@ -18,7 +18,7 @@ int main(string[] args) {
 	settings.port = 8080;
 	settings.maxRequestSize = ulong.max;
 
-	auto f = new FtpRoot(args[1], "Public", r"^\..*?$");
+	auto f = new FtpRoot(absolutePath(args.length>=2? args[1] : "."), "Public", r"^\..*?$");
 	auto ftpPub = new FtpRoot("./Public", "Public", r"^\..*?$");
 
 
@@ -38,7 +38,7 @@ int main(string[] args) {
 
 class FtpRoot{
 	this(in string path, in string tplDir, in string blacklist=""){
-		m_de = DirEntry(path);
+		m_de = buildNormalizedPath(path);
 		if(!m_de.isDir)
 			throw new Exception("Folder constructor must take an existing folder as argument");
 
