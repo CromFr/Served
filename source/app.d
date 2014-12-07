@@ -178,7 +178,6 @@ private:
 		auto relPathSplit = relPath.pathSplitter;
 
 		//Forbid escaping from ftp root
-		writeln(relPathSplit);
 		if(relPathSplit.front==".."){
 			throw new SecuredPathException("You cannot go under the file-server root directory");
 		}
