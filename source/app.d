@@ -1,6 +1,6 @@
 import vibe.d;
 import std.file;
-import std.path;
+import std.expe.path;
 import std.stdio;
 import std.conv;
 import std.regex;
@@ -12,24 +12,85 @@ import config;
 
 int main(string[] args) {
 
-	auto cfg = new Config("config.json");
+	Server srv;
+	if(args.length==2 && args[1].isFile){
+		writeln("Using config: ", args[1]);
 
-	auto settings = new HTTPServerSettings;
-	settings.port = 8080;
-	settings.maxRequestSize = ulong.max;
+		srv = new Server(args[1]);
+	}
+	else if(args.length==1 || (args.length==2 && args[1].isDir)){
 
-	auto f = new FtpRoot(absolutePath(args.length>=2? args[1] : "."), "Public", r"^\..*?$");
-	auto ftpPub = new FtpRoot("./Public", "Public", r"^\..*?$");
+		srv = new Server(DirEntry(args.length==2? args[1] : "."));
+	}
+	else{
+		writeln("Usage:\n\tserved dir\n\t\tStart serving a specific directory using default configuration\n\tserved cfg\n\t\tStart serving files using cfg as configuration");
+	}
 
 
-	auto router = new URLRouter;
-	ftpPub.setRoute(router, "/_served_pub", 0b100);
-	f.setRoute(router, "/", 0b110);
-
-	listenHTTP(settings, router);
-
-	runEventLoop();
+	srv.Start();
+	
 	return 0;
+}
+
+
+
+class Server{
+
+	this(in string configPath){
+		m_conf = Config(readText(configPath));
+		Setup();
+	}
+
+	this(in DirEntry dir){
+		m_conf = Config(q"[
+		{
+			"/": {
+				"root": "]"~dir.name~q"["
+			}
+		}
+		]");
+		Setup();
+	}
+
+	void Start(){
+		listenHTTP(m_settings, m_router);
+		runEventLoop();
+	}
+
+
+
+private:
+	Config m_conf;
+	HTTPServerSettings m_settings;
+	URLRouter m_router;
+	FtpRoot m_ftpPub;
+	FtpRoot m_ftpRoots[];
+
+
+
+	void Setup(){
+		auto srvconf = m_conf.GetConfig(".");
+		writeln(m_conf.json);
+
+		m_settings = new HTTPServerSettings;
+		m_settings.port = srvconf.port.to!ushort;
+		m_settings.maxRequestSize = ulong.max;
+
+		m_router = new URLRouter;
+
+		m_ftpPub = new FtpRoot(srvconf.resource.to!string, srvconf.resource.to!string, r"^\..*?$");
+		m_ftpPub.setRoute(m_router, "/_served_pub", 0b100);
+
+		foreach(key, path ; m_conf.roots){
+			auto pathconf = m_conf.GetConfig(path);
+			writeln(pathconf.toPrettyString);
+
+			auto ftproot = new FtpRoot(pathconf.root.to!string, srvconf.resource.to!string, pathconf.blacklist.to!string);
+			ftproot.setRoute(m_router, key, 0b110);
+			m_ftpRoots ~= ftproot;
+		}
+	}
+
 }
 
 
@@ -38,9 +99,10 @@ int main(string[] args) {
 
 class FtpRoot{
 	this(in string path, in string tplDir, in string blacklist=""){
-		m_de = buildNormalizedPath(path);
-		if(!m_de.isDir)
-			throw new Exception("Folder constructor must take an existing folder as argument");
+		auto normpath = normalizedPath(path);
+		assert(normpath.exists, "'"~normpath~"' does not exists");
+		assert(normpath.isDir, "'"~normpath~"' must be a folder");
+		m_de = normpath;
 
 		m_tplPage = new Template(buildPath(tplDir, "page.tpl"));
 		m_tplFile = new Template(buildPath(tplDir, "file.tpl"));
@@ -62,7 +124,7 @@ class FtpRoot{
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 
 		try{
-			auto reqpath = buildNormalizedPath(req.path).chompPrefix(buildNormalizedPath(m_prefix));
+			auto reqpath = normalizedPath(req.path).chompPrefix(normalizedPath(m_prefix));
 
 			auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
 
@@ -173,7 +235,7 @@ private:
 		}
 	}
 	string buildSecuredPath(VT...)(VT path){
-		auto normpath = buildNormalizedPath(path);
+		auto normpath = normalizedPath(path);
 		auto relPath = normpath.relativePath(m_de);
 		auto relPathSplit = relPath.pathSplitter;
 
@@ -203,8 +265,8 @@ private:
 		string NavbarPath(){
 			string ret;
 			string link;
-			foreach(folder ; req.path.buildNormalizedPath.pathSplitter){
-				link = buildNormalizedPath(link, folder);
+			foreach(folder ; req.path.normalizedPath.pathSplitter){
+				link = normalizedPath(link, folder);
 
 				ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
 			}
@@ -286,7 +348,7 @@ private:
 				string[string] map = [
 					"ID": id.to!string,
 					"NAME": de.baseName,
-					"LINK": buildNormalizedPath(req.path, de.baseName),
+					"LINK": normalizedPath(req.path, de.baseName),
 					"ICON": sIcon,
 					"ICON_LINK": sIconLink,
 					"SIZE_PRETTY": sizePretty,

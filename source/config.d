@@ -1,25 +1,42 @@
 module config;
 
 import std.stdio;
-import std.path;
+import std.expe.path;
 import vibe.data.json;
 
-class Config{
-	this(in string jsonpath){
+struct Config{
+
+	this(in string json){
 		//Setup default config
 		defaultConfig = parseJsonString(q"[{
 			"listen": "localhost",
-			"port": "80",
+			"port": "8080",
 			"default_user": "",
 			"users_read": ["all"],
 			"users_write": [""],
-			"root": "."
+			"root": ".",
+			"blacklist": "^\\..*?$",
+			"resource": "Public"
 		}]");
 
+		
 		//Parse config file
 		import std.file;
-		m_container = parseJsonString(readText(jsonpath));
+		m_container = parseJsonString(json);
 		assert(m_container.type == Json.Type.object, "Config should be packed in a json object");
+
+
+		void RegisterRoots(Json obj, in string prefix=""){
+			foreach(string key, value ; obj){
+				if(value.type==Json.Type.object){
+					string newPrefix = key.isAbsolute? "."~key : key;
+					m_rootsPath[key] = normalizedPath(prefix, newPrefix);
+					RegisterRoots(value, newPrefix);
+				}
+			}
+		}
+
+		RegisterRoots(m_container);
 	}
 
 
@@ -30,32 +47,35 @@ class Config{
 		Json GetConfigRecurse(in string path, ref Json root, ref Json ret){
 			import std.algorithm;
 
-			Json jsonobj[string];
+			if(root.type != Json.Type.undefined){
+				Json jsonobj[string];
 
-			//Update ret config and register objects for next loop
-			foreach(string key, value ; root){
-				if(value.type!=Json.Type.object){
-					if(key=="root"){
-						//Special rule for root option: relative path will be relative to the parent root
-						ret[key] = buildNormalizedPath(ret[key].to!string, value.to!string);
+				//Update ret config and register objects for next loop
+				foreach(string key, value ; root){
+					if(value.type!=Json.Type.object){
+						if(key=="root"){
+							//Special rule for root option: relative path will be relative to the parent root
+							ret[key] = normalizedPath(ret[key].to!string, value.to!string);
+						}
+						else
+							ret[key] = value;
 					}
-					else
-						ret[key] = value;
+					else{
+						jsonobj[key] = value;
+					}
 				}
-				else{
-					jsonobj[key] = value;
+
+				foreach(key, value ; jsonobj){
+					//Make path "absolute"
+					string keypath = (key.isAbsolute? key : dirSeparator~key).normalizedPath;
+					string targetpath = (path.isAbsolute? path : dirSeparator~path).normalizedPath;
+
+					if(targetpath.startsWith(keypath)){
+						return GetConfigRecurse(targetpath.relativePath(keypath), value, ret);
+					}
 				}
 			}
 
-			foreach(key, value ; jsonobj){
-				//Make path "absolute"
-				string keypath = (key.isAbsolute? key : dirSeparator~key).buildNormalizedPath;
-				string targetpath = (path.isAbsolute? path : dirSeparator~path).buildNormalizedPath;
-
-				if(targetpath.startsWith(keypath)){
-					return GetConfigRecurse(targetpath.relativePath(keypath), value, ret);
-				}
-			}
 
 			//TODO: handle path that are longer than roots
 			//Check ../path behavior
@@ -66,9 +86,12 @@ class Config{
 		return GetConfigRecurse(path, m_container, j);
 	}
 
+	@property string[string] roots(){return m_rootsPath;}
+	@property string json(){return m_container.toPrettyString;}
 
 private:
 	Json defaultConfig;
 	Json m_container;
+	string m_rootsPath[string];
 
 }
