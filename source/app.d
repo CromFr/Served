@@ -301,7 +301,7 @@ private:
 					}
 				}
 
-				version(POSIX){
+				version(Posix){
 					//Rights
 					string GetRightString(int right){
 						string ret;
