@@ -6,7 +6,6 @@ import vibe.data.json;
 
 class Config{
 	this(in string jsonpath){
-
 		//Setup default config
 		defaultConfig = parseJsonString(q"[{
 			"listen": "localhost",
@@ -17,7 +16,6 @@ class Config{
 			"root": "."
 		}]");
 
-
 		//Parse config file
 		import std.file;
 		m_container = parseJsonString(readText(jsonpath));
@@ -25,15 +23,11 @@ class Config{
 	}
 
 
-	Json m_container;
-	Json[string] m_roots;
-
-	Json defaultConfig;
 
 
-	Json GetPathConfig(in string path){
+	Json GetConfig(in string path){
 
-		Json GetPathConfigRecurse(in string path, ref Json root, Json ret){
+		Json GetConfigRecurse(in string path, ref Json root, ref Json ret){
 			import std.algorithm;
 
 			Json jsonobj[string];
@@ -59,7 +53,7 @@ class Config{
 				string targetpath = (path.isAbsolute? path : dirSeparator~path).buildNormalizedPath;
 
 				if(targetpath.startsWith(keypath)){
-					return GetPathConfigRecurse(targetpath.relativePath(keypath), value, ret);
+					return GetConfigRecurse(targetpath.relativePath(keypath), value, ret);
 				}
 			}
 
@@ -68,42 +62,13 @@ class Config{
 			return ret;
 		}
 
-		return GetPathConfigRecurse(path, m_container, defaultConfig);
+		Json j = defaultConfig;
+		return GetConfigRecurse(path, m_container, j);
 	}
 
 
-	//class Node {
-	//	this(ref Node parent, in string path){
-
-	//		m_path = path;
-
-	//		if(parent !is null){
-	//			m_parent = &parent;
-	//			parent.children ~= this;
-	//		}
-
-	//		assert
-	//	}
-
-	//	@property ref Node parent(){ return *m_parent; }
-	//	@property ref Node[] children(){ return m_children; }
-
-	//	@property T get(T)(in string key){
-	//		m_container.
-	//		return get!T(key);
-	//	}
-
-	//private:
-	//	Json m_container;
-	//	string m_path;
-
-	//	Node* m_parent;
-	//	Node m_children[];
-	//}
-
-
-
-
 private:
+	Json defaultConfig;
+	Json m_container;
 
 }
