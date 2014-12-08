@@ -70,7 +70,6 @@ private:
 
 	void Setup(){
 		auto srvconf = m_conf.GetConfig(".");
-		writeln(m_conf.json);
 
 		m_settings = new HTTPServerSettings;
 		m_settings.port = srvconf.port.to!ushort;
@@ -81,12 +80,12 @@ private:
 		m_ftpPub = new FtpRoot(srvconf.resource.to!string, srvconf.resource.to!string, r"^\..*?$");
 		m_ftpPub.setRoute(m_router, "/_served_pub", 0b100);
 
-		foreach(key, path ; m_conf.roots){
+		foreach_reverse(path ; m_conf.roots){
 			auto pathconf = m_conf.GetConfig(path);
-			writeln(pathconf.toPrettyString);
+			//writeln(pathconf.toPrettyString);
 
 			auto ftproot = new FtpRoot(pathconf.root.to!string, srvconf.resource.to!string, pathconf.blacklist.to!string);
-			ftproot.setRoute(m_router, key, 0b110);
+			ftproot.setRoute(m_router, path, 0b110);
 			m_ftpRoots ~= ftproot;
 		}
 	}
@@ -108,9 +107,11 @@ class FtpRoot{
 		m_tplFile = new Template(buildPath(tplDir, "file.tpl"));
 
 		m_blacklist = regex(blacklist);
+		writeln("FtpRoot pointing ",path);
 	}
 
 	void setRoute(URLRouter router, string prefix, int accessrights=0b100){
+		writeln("Routed to ",prefix~"*");
 		m_prefix = prefix;
 
 		if(accessrights & 0b100){//read

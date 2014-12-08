@@ -29,14 +29,20 @@ struct Config{
 		void RegisterRoots(Json obj, in string prefix=""){
 			foreach(string key, value ; obj){
 				if(value.type==Json.Type.object){
-					string newPrefix = key.isAbsolute? "."~key : key;
-					m_rootsPath[key] = normalizedPath(prefix, newPrefix);
-					RegisterRoots(value, newPrefix);
+					if(prefix!=""){
+						string newPrefix = key.isAbsolute? "."~key : key;
+						m_rootsPath ~= normalizedPath(prefix, newPrefix);
+					}
+					else{
+						m_rootsPath ~= normalizedPath(key);
+					}
+					RegisterRoots(value, m_rootsPath[$-1]);
 				}
 			}
 		}
 
 		RegisterRoots(m_container);
+		writeln("m_rootsPath=", m_rootsPath);
 	}
 
 
@@ -86,12 +92,12 @@ struct Config{
 		return GetConfigRecurse(path, m_container, j);
 	}
 
-	@property string[string] roots(){return m_rootsPath;}
+	@property string[] roots(){return m_rootsPath;}
 	@property string json(){return m_container.toPrettyString;}
 
 private:
 	Json defaultConfig;
 	Json m_container;
-	string m_rootsPath[string];
+	string m_rootsPath[];
 
 }
