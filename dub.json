@@ -6,5 +6,6 @@
 	"dependencies": {
 		"vibe-d": "~master"
 	},
-	"versions": ["VibeCustomMain"]
+	"versions": ["VibeCustomMain"],
+	"libs": ["pam"]
 }
