@@ -66,6 +66,8 @@ private:
 	FtpRoot m_ftpPub;
 	FtpRoot m_ftpRoots[];
 
+	TemplateDB m_tpldb;
+
 
 
 	void Setup(){
@@ -76,6 +78,8 @@ private:
 		m_settings.maxRequestSize = ulong.max;
 
 		m_router = new URLRouter;
+
+		m_tpldb = new TemplateDB(srvconf.resource.to!string);
 
 		m_ftpPub = new FtpRoot(srvconf.resource.to!string, srvconf.resource.to!string, r"^\..*?$");
 		m_ftpPub.setRoute(m_router, "/_served_pub", 0b100);
@@ -88,6 +92,9 @@ private:
 			ftproot.setRoute(m_router, path, 0b110);
 			m_ftpRoots ~= ftproot;
 		}
+
+
+	
 	}
 
 }
@@ -102,9 +109,6 @@ class FtpRoot{
 		assert(normpath.exists, "'"~normpath~"' does not exists");
 		assert(normpath.isDir, "'"~normpath~"' must be a folder");
 		m_de = normpath;
-
-		m_tplPage = new Template(buildPath(tplDir, "page.tpl"));
-		m_tplFile = new Template(buildPath(tplDir, "file.tpl"));
 
 		m_blacklist = regex(blacklist);
 		writeln("FtpRoot pointing ",path);
@@ -227,8 +231,6 @@ private:
 	DirEntry m_de;
 	Regex!char m_blacklist;
 	string m_prefix;
-	Template m_tplPage;
-	Template m_tplFile;
 
 	class SecuredPathException : Exception{
 		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null){
@@ -394,7 +396,7 @@ private:
 					]);
 				}
 
-				ret~= m_tplFile.Generate(map);
+				ret~= TemplateDB["file.tpl"].Generate(map);
 			}
 
 			return ret;
@@ -408,7 +410,7 @@ private:
 			"FILE_LIST" : FileList()
 		];
 
-		page.write(m_tplPage.Generate(map));
+		page.write(TemplateDB["page.tpl"].Generate(map));
 	}
 
 	void ServeFile(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
