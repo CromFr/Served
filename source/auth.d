@@ -21,6 +21,9 @@ class Auth{
 
 			auto pw = getpwnam(login.toStringz);
 
+			if(pw is null)
+				throw new AuthException("Invalid username: '"~login~"'");
+
 			if (pw.pw_gid >= 0) {
 				assert(getgrgid(pw.pw_gid) !is null, "Invalid group id!");
 				assert(setegid(pw.pw_gid) == 0, "Error setting group id!");
@@ -88,12 +91,18 @@ class Auth{
 		}
 
 
-
-		void executeAs(in string login, void function() fun){
+		import std.traits : isCallable;
+		void executeAs(in string login, void delegate() fun){
 			string oldlogin = getUser();
 			setUser(login);
 			fun();
 			setUser(oldlogin);
+		}
+
+		debug void printUID(){
+			import std.stdio;
+			import core.sys.posix.unistd;
+			writeln("uid=",getuid(),"\tgid=",getgid(),"\teuid=",geteuid(),"\tegid=",getegid());
 		}
 
 	}

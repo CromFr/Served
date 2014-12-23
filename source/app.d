@@ -4,6 +4,7 @@ import std.stdio;
 import std.conv;
 import std.regex;
 import config;
+import auth;
 
 
 int main(string[] args) {
@@ -52,6 +53,8 @@ class Server{
 
 	void Start(){
 		listenHTTP(m_settings, m_router);
+		auto cfg = m_conf.GetConfig(".");
+		Auth.setUser(cfg.default_user.to!string);
 		runEventLoop();
 	}
 
