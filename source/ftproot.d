@@ -17,11 +17,9 @@ class FtpRoot{
 		m_de = normpath;
 
 		m_blacklist = regex(blacklist);
-		writeln("FtpRoot pointing ",path);
 	}
 
 	void setRoute(URLRouter router, string prefix, int accessrights=0b100){
-		writeln("Routed to ",prefix~"*");
 		m_prefix = prefix;
 
 		if(accessrights & 0b100){//read
