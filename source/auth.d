@@ -35,11 +35,11 @@ class Auth{
 			}
 		}
 
-		string getUser(in int uid=-1){
+		string getUser(in int euid=-1){
 			import core.sys.posix.unistd;
 			import core.sys.posix.pwd;
 
-			auto pw = getpwuid(uid!=-1? uid : getuid());
+			auto pw = getpwuid(euid!=-1? euid : geteuid());
 			return pw.pw_name.to!string;
 		}
 
