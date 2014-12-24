@@ -9,6 +9,10 @@
 	"settings":
 	{
 		"sublimegdb_workingdir": "${folder:${project_path:.}}",
-		"sublimegdb_commandline": "gdb -nx -readnow -fullname --interpreter=mi -ex \"b _d_assert\" -ex \"b _d_assert_msg\" -args ./served"
+		"sublimegdb_commandline": "gdb -nx -readnow -fullname --interpreter=mi -ex \"b _d_assert\" -ex \"b _d_assert_msg\" -args ./served",
+		"dkit_include_paths": [
+			"/usr/include/dlang/dmd",
+			"~/.dub/packages/vibe-d-master/source/vibe"
+		]
 	}
 }
