@@ -132,6 +132,11 @@ class FtpRoot{
 		catch(AuthException e){
 			res.writeBody("<h1>403: Bad authentification</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
 		}
+		catch(Throwable t){
+			import std.array : replace;
+			debug res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p><hr/><ul><li>"~t.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
+			else res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p>", "text/html; charset=UTF-8");
+		}
 	}
 
 	
