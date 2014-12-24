@@ -2,6 +2,11 @@ module auth;
 
 import pam;
 
+import core.sys.posix.unistd;
+import core.sys.posix.pwd;
+import core.sys.posix.grp;
+private extern (C) int setgroups(size_t size, gid_t* list);
+
 class AuthException : Exception{
 	this(in string msg){
 		super(msg);
@@ -15,10 +20,6 @@ class Auth{
 	static{
 		void setUser(in string login)
 		{
-			import core.sys.posix.unistd;
-			import core.sys.posix.pwd;
-			import core.sys.posix.grp;
-
 			auto pw = getpwnam(login.toStringz);
 
 			if(pw is null)
@@ -26,19 +27,20 @@ class Auth{
 
 			if (pw.pw_gid >= 0) {
 				assert(getgrgid(pw.pw_gid) !is null, "Invalid group id!");
-				assert(setegid(pw.pw_gid) == 0, "Error setting group id!");
+				assert(setregid(pw.pw_gid, pw.pw_gid) == 0, "Error setting group id!");
 			}
-			//if( initgroups(const char *user, gid_t group);
+
+			gid_t grps[1] = [pw.pw_gid];
+			setgroups(1, grps.ptr);
+			//assert( == 0, "Error setting group id!");
+
 			if (pw.pw_uid >= 0) {
 				assert(getpwuid(pw.pw_uid) !is null, "Invalid user id!");
-				assert(seteuid(pw.pw_uid) == 0, "Error setting user id!");
+				assert(setreuid(pw.pw_uid, pw.pw_uid) == 0, "Error setting user id!");
 			}
 		}
 
 		string getUser(in int euid=-1){
-			import core.sys.posix.unistd;
-			import core.sys.posix.pwd;
-
 			auto pw = getpwuid(euid!=-1? euid : geteuid());
 			return pw.pw_name.to!string;
 		}
@@ -101,7 +103,6 @@ class Auth{
 
 		debug void printUID(){
 			import std.stdio;
-			import core.sys.posix.unistd;
 			writeln("uid=",getuid(),"\tgid=",getgid(),"\teuid=",geteuid(),"\tegid=",getegid());
 		}
 
