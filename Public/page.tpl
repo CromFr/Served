@@ -11,13 +11,18 @@
 	<body>
 		<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 			<div class="container">
-				<div class="navbar-header">
+				<div class="navbar-header navbar-left">
 					<a class="navbar-brand" href='https://github.com/CromFr/Served'>Served</a>
 				</div>
-				<div id="navbar" class="navbar-collapse collapse">
+				<div id="navbar" class="navbar-left navbar-collapse collapse">
 					<ul class="nav navbar-nav">
 						{{NAVBAR_PATH}}
 					</ul>
+				</div>
+				<div class="navbar-right">
+					<button type="button" class="btn btn-primary navbar-btn">
+						<div class="glyphicon glyphicon-log-in"></div> Login
+					</button>
 				</div>
 			</div>
 		</nav>
