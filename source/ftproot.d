@@ -10,13 +10,14 @@ import auth;
 import tpl;
 
 class FtpRoot{
-	this(in string path, in string tplDir, in string blacklist=""){
-		auto normpath = normalizedPath(path);
+	this(in Json conf){
+		auto normpath = normalizedPath(conf.root.to!string);
 		assert(normpath.exists, "'"~normpath~"' does not exists");
 		assert(normpath.isDir, "'"~normpath~"' must be a folder");
 		m_de = normpath;
 
-		m_blacklist = regex(blacklist);
+		m_blacklist = regex(conf.blacklist.to!string);
+		m_defaultUser = conf.default_user.to!string;
 	}
 
 	void setRoute(URLRouter router, string prefix, int accessrights=0b100){
@@ -33,7 +34,7 @@ class FtpRoot{
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 
 		try{
-			Auth.executeAs("crom", {
+			Auth.executeAs(m_defaultUser, {
 				auto reqpath = normalizedPath(req.path).chompPrefix(normalizedPath(m_prefix));
 
 				auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
@@ -140,6 +141,7 @@ private:
 	DirEntry m_de;
 	Regex!char m_blacklist;
 	string m_prefix;
+	string m_defaultUser;
 
 	class SecuredPathException : Exception{
 		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null){

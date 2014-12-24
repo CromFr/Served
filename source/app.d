@@ -82,14 +82,16 @@ private:
 
 		m_tpldb = new TemplateDB(srvconf.resource.to!string);
 
-		m_ftpPub = new FtpRoot(srvconf.resource.to!string, srvconf.resource.to!string, r"^\..*?$");
+		auto pubconf = parseJsonString(srvconf.toString);
+		pubconf.root = pubconf.resource.to!string;
+		m_ftpPub = new FtpRoot(pubconf);
 		m_ftpPub.setRoute(m_router, "/_served_pub", 0b100);
 
 		foreach_reverse(path ; m_conf.roots){
 			auto pathconf = m_conf.GetConfig(path);
 			//writeln(pathconf.toPrettyString);
 
-			auto ftproot = new FtpRoot(pathconf.root.to!string, srvconf.resource.to!string, pathconf.blacklist.to!string);
+			auto ftproot = new FtpRoot(pathconf);
 			ftproot.setRoute(m_router, path, 0b110);
 			m_ftpRoots ~= ftproot;
 		}
