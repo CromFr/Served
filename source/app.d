@@ -41,10 +41,12 @@ class Server{
 	}
 
 	this(in DirEntry dir){
+		import std.string;
+		string[dchar] trans = ['\\':"\\\\", '"':"\\\""];
 		m_conf = Config(q"[
 		{
 			"/": {
-				"root": "]"~dir.name~q"["
+				"root": "]"~dir.name.translate(trans)~q"["
 			}
 		}
 		]");
