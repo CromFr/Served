@@ -3,6 +3,8 @@ module config;
 import std.stdio;
 import std.expe.path;
 import vibe.data.json;
+import vibe.inet.path : Path, joinPath;
+alias InetPath = vibe.inet.path.Path;
 
 struct Config{
 
@@ -31,10 +33,14 @@ struct Config{
 				if(value.type==Json.Type.object){
 					if(prefix!=""){
 						string newPrefix = key.isAbsolute? "."~key : key;
-						m_rootsPath ~= normalizedPath(prefix, newPrefix);
+						auto p = InetPath(joinPath(prefix, newPrefix));
+						p.normalize;
+						m_rootsPath ~= p.toString;
 					}
 					else{
-						m_rootsPath ~= normalizedPath(key);
+						auto p = InetPath(key);
+						p.normalize;
+						m_rootsPath ~= p.toString;
 					}
 					RegisterRoots(value, m_rootsPath[$-1]);
 				}
