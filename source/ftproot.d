@@ -34,7 +34,7 @@ class FtpRoot{
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 
 		try{
-			Auth.executeAs(m_defaultUser, {
+			auto fun = delegate(){
 				auto reqpath = normalizedPath(req.path).chompPrefix(normalizedPath(m_prefix));
 
 				auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
@@ -124,7 +124,9 @@ class FtpRoot{
 					default:
 						writeln("Unhandled method: ",req.method);
 				}
-			});
+			};
+			if(m_defaultUser!="") Auth.executeAs(m_defaultUser, fun);
+			else                  fun();
 		}
 		catch(SecuredPathException e){
 			res.writeBody("<h1>403: Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");

@@ -56,7 +56,10 @@ class Server{
 	void Start(){
 		listenHTTP(m_settings, m_router);
 		auto cfg = m_conf.GetConfig(".");
-		Auth.setUser(cfg.default_user.to!string);
+
+		auto user = cfg.default_user.to!string;
+		if(user!="") Auth.setUser(cfg.default_user.to!string);
+		
 		runEventLoop();
 	}
 
