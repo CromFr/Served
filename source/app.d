@@ -85,7 +85,7 @@ private:
 
 		m_router = new URLRouter;
 
-		m_tpldb = new TemplateDB(srvconf.resource.to!string);
+		m_tpldb = new TemplateDB(srvconf.resource.to!string, srvconf.autoreload.to!bool);
 
 		auto pubconf = parseJsonString(srvconf.toString);
 		pubconf.root = pubconf.resource.to!string;

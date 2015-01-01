@@ -3,16 +3,21 @@ module tpl;
 import std.regex;
 import std.stdio;
 import std.file;
+import std.path : baseName;
+import std.datetime : SysTime;
 
 class Template{
 	
-	this(string path){
-		content = readText(path);
-
-		//TODO: Fetch all fields now and register indexes
+	this(string path, bool reloadIfModified){
+		m_path = path;
+		m_reload = reloadIfModified;
+		Load();
 	}
 
 	auto ref Generate(in string[string] symbolmap){
+
+		if(m_reload && m_lastReload<timeLastModified(m_path))
+			Load();
 
 		string MapSym(Captures!(string) m)
 		{
@@ -27,7 +32,20 @@ class Template{
 
 
 private:
-	immutable string content;
+	void Load(){
+		content = readText(m_path);
+		m_lastReload = timeLastModified(m_path);
+
+		//TODO: Fetch all fields now and register indexes
+
+		writeln("Loaded ",m_path.baseName);
+	}
+
+
+	immutable string m_path;
+	bool m_reload;
+	SysTime m_lastReload;
+	string content;
 	enum rgxEntry = ctRegex!r"\{\{(.*?)\}\}";
 
 }
@@ -38,11 +56,11 @@ class TemplateDB{
 	import std.algorithm : map;
 	import std.path : baseName;
 
-	this(in string directory){
+	this(in string directory, bool reloadIfModified){
 
 		foreach(f ; dirEntries(directory, "*.tpl", SpanMode.shallow)){
 			if(f.isFile)
-				m_tpl[f.baseName] = new Template(f);
+				m_tpl[f.baseName] = new Template(f, reloadIfModified);
 		}
 		m_inst = this;
 	}
