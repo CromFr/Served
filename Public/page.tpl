@@ -29,9 +29,10 @@
 								<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
 									<input name="posttype" type="hidden" value="login"/>
 									<label>Login</label>
-									<input name="name" type="text" class="form-control" placeholder="Login"/>
+									<input name="login" type="text" class="form-control" placeholder="Login"/>
 									<label>Password</label>
-									<input name="name" type="password" class="form-control" placeholder=""/>
+									<input name="pwd" type="password" class="form-control" placeholder=""/>
+									<input style="display:none" type="submit" value="Submit"/>
 								</form>
 							</div>
 						</div>

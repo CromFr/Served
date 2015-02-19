@@ -54,7 +54,7 @@ class Server{
 	}
 
 	void Start(){
-		listenHTTP(m_settings, m_router);
+		listenHTTP(m_settings, &HandleRequest);
 		auto cfg = m_conf.GetConfig(".");
 
 		auto user = cfg.default_user.to!string;
@@ -100,9 +100,27 @@ private:
 			ftproot.setRoute(m_router, path, 0b110);
 			m_ftpRoots ~= ftproot;
 		}
+	}
 
 
-	
+	void HandleRequest(HTTPServerRequest req, HTTPServerResponse res){
+
+		if(req.method == HTTPMethod.POST && req.contentType=="multipart/form-data" && req.form["posttype"]=="login"){
+			if("login" in req.form && "pwd" in req.form){
+				writeln("========> Login as ", req.form["login"], ":", req.form["pwd"]);
+
+				res.redirect(".");
+			}
+			else{
+				res.statusCode = 400;
+				res.writeBody("<h1>400: Bad Request</h1>", "text/html; charset=UTF-8");
+				return;
+			}
+
+		}
+		else
+			m_router.handleRequest(req, res);
+
 	}
 
 }
