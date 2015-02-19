@@ -20,20 +20,23 @@
 					</ul>
 				</div>
 				<div class="navbar-right">
+					<p class="navbar-text">{{USER}}</p>
 					<button type="button" class="btn btn-primary navbar-btn">
 						<div class="glyphicon glyphicon-log-in"></div> Login
 
-						<div id="popover_login" class="popover popover-html" data-trigger="click" data-placement="bottom" data-toggle="popover">
-							<div class="arrow"></div>
-							<div class="popover-content">
-								<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
-									<input name="posttype" type="hidden" value="login"/>
-									<label>Login</label>
-									<input name="login" type="text" class="form-control" placeholder="Login"/>
-									<label>Password</label>
-									<input name="pwd" type="password" class="form-control" placeholder=""/>
-									<input style="display:none" type="submit" value="Submit"/>
-								</form>
+						<div>
+							<div id="popover_login" class="popover popover-html" data-trigger="click" data-placement="bottom" data-toggle="popover">
+								<div class="arrow"></div>
+								<div class="popover-content">
+									<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
+										<input name="posttype" type="hidden" value="login"/>
+										<label>Login</label>
+										<input name="login" type="text" class="form-control" placeholder="Login"/>
+										<label>Password</label>
+										<input name="password" type="password" class="form-control" placeholder=""/>
+										<input style="display:none" type="submit" value="Submit"/>
+									</form>
+								</div>
 							</div>
 						</div>
 					</button>
