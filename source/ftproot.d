@@ -9,6 +9,14 @@ import std.stdio : writeln;
 import auth;
 import tpl;
 
+
+
+class SecuredPathException : Exception{
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null){
+		super(msg, file, line, next);
+	}
+}
+
 class FtpRoot{
 	this(in Json conf){
 		auto normpath = normalizedPath(conf.root.to!string);
@@ -33,113 +41,102 @@ class FtpRoot{
 
 	void Serve(HTTPServerRequest req, HTTPServerResponse res){
 
-		try{
-			auto fun = delegate(){
-				auto reqpath = normalizedPath(req.path).chompPrefix(normalizedPath(m_prefix));
+		auto fun = delegate(){
+			auto reqpath = normalizedPath(req.path).chompPrefix(normalizedPath(m_prefix));
 
-				auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
+			auto reqFullPath = buildSecuredPath(m_de, "./"~reqpath);
 
-				if(!reqFullPath.exists){
-					res.statusCode = 404;
-					res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
-					return;
-				}
-				
+			if(!reqFullPath.exists){
+				res.statusCode = 404;
+				res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
+				return;
+			}
+			
 
-				switch(req.method){
-					case HTTPMethod.GET:{
-						writeln("GET:  ",reqFullPath);
+			switch(req.method){
+				case HTTPMethod.GET:{
+					writeln("GET:  ",reqFullPath);
 
-						if(reqFullPath.isDir){
-							ServeDir(req, res, DirEntry(reqFullPath));
-						}
-						else{
-							ServeFile(req, res, DirEntry(reqFullPath));
-						}
+					if(reqFullPath.isDir){
+						ServeDir(req, res, DirEntry(reqFullPath));
+					}
+					else{
+						ServeFile(req, res, DirEntry(reqFullPath));
+					}
 
-					}break;
+				}break;
 
-					case HTTPMethod.POST:{
-						writeln("POST ",req.form["posttype"],": ",reqFullPath);
-						if(req.contentType=="multipart/form-data"){
+				case HTTPMethod.POST:{
+					writeln("POST ",req.form["posttype"],": ",reqFullPath);
+					if(req.contentType=="multipart/form-data"){
 
-							switch(req.form["posttype"]){
-								case "uploadfile":{
-									auto files = req.files;
-									foreach(f ; files){
+						switch(req.form["posttype"]){
+							case "uploadfile":{
+								auto files = req.files;
+								foreach(f ; files){
 
-										auto tmppath = f.tempPath.toNativeString;
-										auto targetpath = buildSecuredPath(reqFullPath, f.filename.toString);
+									auto tmppath = f.tempPath.toNativeString;
+									auto targetpath = buildSecuredPath(reqFullPath, f.filename.toString);
 
-										tmppath.copy(targetpath);
-										logInfo("Uploaded file: "~targetpath);
-									}
+									tmppath.copy(targetpath);
+									logInfo("Uploaded file: "~targetpath);
+								}
 
-									res.redirect(reqpath);
-								}break;
+								res.redirect(reqpath);
+							}break;
 
-								case "newfolder":{
-									string path = buildSecuredPath(reqFullPath, req.form["name"]);
-									mkdir(path);
-									logInfo("Created folder: "~path);
+							case "newfolder":{
+								string path = buildSecuredPath(reqFullPath, req.form["name"]);
+								mkdir(path);
+								logInfo("Created folder: "~path);
 
-									res.redirect(reqpath);
-								}break;
+								res.redirect(reqpath);
+							}break;
 
-								case "rename":{
-									string curname = buildSecuredPath(reqFullPath, req.form["file"]);
-									string newname = buildSecuredPath(reqFullPath, req.form["name"]);
-									rename(curname, newname);
-									logInfo("Renamed: "~curname~" into "~newname);
+							case "rename":{
+								string curname = buildSecuredPath(reqFullPath, req.form["file"]);
+								string newname = buildSecuredPath(reqFullPath, req.form["name"]);
+								rename(curname, newname);
+								logInfo("Renamed: "~curname~" into "~newname);
 
-									res.redirect(reqpath);
-								}break;
+								res.redirect(reqpath);
+							}break;
 
-								case "remove":{
-									string path = buildSecuredPath(reqFullPath, req.form["file"]);
-									remove(path);
-									logInfo("Removed: "~path);
+							case "remove":{
+								string path = buildSecuredPath(reqFullPath, req.form["file"]);
+								remove(path);
+								logInfo("Removed: "~path);
 
-									res.redirect(DirEntry(reqFullPath));
-								}break;
+								res.redirect(DirEntry(reqFullPath));
+							}break;
 
-								case "move":{
-									string file = buildSecuredPath(reqFullPath, req.form["file"]);
-									string dest = buildSecuredPath(reqFullPath, req.form["destination"], req.form["file"]);
-									file.rename(dest);
-									logInfo("Moved: "~file~" to "~dest);
+							case "move":{
+								string file = buildSecuredPath(reqFullPath, req.form["file"]);
+								string dest = buildSecuredPath(reqFullPath, req.form["destination"], req.form["file"]);
+								file.rename(dest);
+								logInfo("Moved: "~file~" to "~dest);
 
-									res.redirect(reqpath);
-								}break;
+								res.redirect(reqpath);
+							}break;
 
-								default:
-									res.statusCode = 405;
-							}
-
-
-
+							default:
+								res.statusCode = 405;
 						}
 
-					}break;
 
-					default:
-						writeln("Unhandled method: ",req.method);
-				}
-			};
-			if(m_defaultUser!="") Auth.executeAs(m_defaultUser, fun);
-			else                  fun();
-		}
-		catch(SecuredPathException e){
-			res.writeBody("<h1>403: Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
-		}
-		catch(AuthException e){
-			res.writeBody("<h1>403: Bad authentification</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
-		}
-		catch(Throwable t){
-			import std.array : replace;
-			debug res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p><hr/><ul><li>"~t.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
-			else res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p>", "text/html; charset=UTF-8");
-		}
+
+					}
+
+				}break;
+
+				default:
+					writeln("Unhandled method: ",req.method);
+			}
+		};
+
+		if(req.session)            Auth.executeAs(req.session.get!string("login"), fun);
+		else if(m_defaultUser!="") Auth.executeAs(m_defaultUser, fun);
+		else                       fun();
 	}
 
 	
@@ -151,11 +148,6 @@ private:
 	string m_prefix;
 	string m_defaultUser;
 
-	class SecuredPathException : Exception{
-		this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null){
-			super(msg, file, line, next);
-		}
-	}
 	string buildSecuredPath(VT...)(VT path){
 		auto normpath = normalizedPath(path);
 		auto relPath = normpath.relativePath(m_de);
@@ -326,7 +318,8 @@ private:
 			"PAGE_TITLE" : path.baseName,
 			"NAVBAR_PATH" : NavbarPath(),
 			"HEADER_INDEX" : HeaderIndex(),
-			"FILE_LIST" : FileList()
+			"FILE_LIST" : FileList(),
+			"USER" : req.session? req.session.get!string("login") : "Default user"
 		];
 
 		page.write(TemplateDB["page.tpl"].Generate(map));

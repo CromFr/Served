@@ -82,6 +82,7 @@ private:
 		m_settings = new HTTPServerSettings;
 		m_settings.port = srvconf.port.to!ushort;
 		m_settings.maxRequestSize = ulong.max;
+		m_settings.sessionStore = new MemorySessionStore;
 
 		m_router = new URLRouter;
 
@@ -104,22 +105,77 @@ private:
 
 
 	void HandleRequest(HTTPServerRequest req, HTTPServerResponse res){
+		import auth : AuthException;
+		import ftproot : SecuredPathException;
 
-		if(req.method == HTTPMethod.POST && req.contentType=="multipart/form-data" && req.form["posttype"]=="login"){
-			if("login" in req.form && "pwd" in req.form){
-				writeln("========> Login as ", req.form["login"], ":", req.form["pwd"]);
 
-				res.redirect(".");
+		try{
+
+			if(req.method == HTTPMethod.POST && req.contentType=="multipart/form-data"){
+				switch(req.form["posttype"]){
+
+					case "login":
+						if("login" in req.form && "password" in req.form){
+
+							if(!req.session){
+								string login = req.form["login"];
+								string password = req.form["password"];
+
+								Auth.checkCredentials(login, password);
+								//Let server exception handler handle login failures
+
+								writeln("User logged in as ", req.form["login"]);
+								req.session = res.startSession();
+								req.session.set("login", login);
+
+								res.redirect(".");
+							}
+							else{
+								res.statusCode = 401;
+								res.writeBody("<h1>You are already logged in</h1>", "text/html; charset=UTF-8");
+							}
+						}
+						else{
+							res.statusCode = 400;
+							res.writeBody("<h1>400: Bad Request</h1>", "text/html; charset=UTF-8");
+						}
+						return;
+
+					case "logout":
+						if(!req.session){
+							res.terminateSession();
+							res.redirect(".");
+						}
+						else{
+							res.statusCode = 401;
+							res.writeBody("<h1>You are not logged in</h1>", "text/html; charset=UTF-8");
+						}
+						return;
+
+
+					default: break;
+				}
+
 			}
-			else{
-				res.statusCode = 400;
-				res.writeBody("<h1>400: Bad Request</h1>", "text/html; charset=UTF-8");
-				return;
-			}
+			
+			//Default case
+			m_router.handleRequest(req, res);
 
 		}
-		else
-			m_router.handleRequest(req, res);
+		catch(SecuredPathException e){
+			res.statusCode = 403;
+			res.writeBody("<h1>Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
+		}
+		catch(AuthException e){
+			res.statusCode = 401;
+			res.writeBody("<h1>Bad authentification</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
+		}
+		catch(Throwable t){
+			import std.array : replace;
+			res.statusCode = 500;
+			debug res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p><hr/><ul><li>"~t.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
+			else res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p>", "text/html; charset=UTF-8");
+		}
 
 	}
 
