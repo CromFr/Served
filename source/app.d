@@ -131,7 +131,7 @@ private:
 								req.session = res.startSession();
 								req.session.set("login", login);
 
-								res.redirect(".");
+								res.redirect(req.path);
 							}
 							else{
 								res.statusCode = 401;
@@ -147,7 +147,7 @@ private:
 					case "logout":
 						if(req.session){
 							res.terminateSession();
-							res.redirect(".");
+							res.redirect(req.path);
 						}
 						else{
 							res.statusCode = 401;

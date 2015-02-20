@@ -82,7 +82,7 @@ class FtpRoot{
 									logInfo("Uploaded file: "~targetpath);
 								}
 
-								res.redirect(reqpath);
+								res.redirect(req.path);
 							}break;
 
 							case "newfolder":{
@@ -90,7 +90,7 @@ class FtpRoot{
 								mkdir(path);
 								logInfo("Created folder: "~path);
 
-								res.redirect(reqpath);
+								res.redirect(req.path);
 							}break;
 
 							case "rename":{
@@ -99,7 +99,7 @@ class FtpRoot{
 								rename(curname, newname);
 								logInfo("Renamed: "~curname~" into "~newname);
 
-								res.redirect(reqpath);
+								res.redirect(req.path);
 							}break;
 
 							case "remove":{
@@ -116,7 +116,7 @@ class FtpRoot{
 								file.rename(dest);
 								logInfo("Moved: "~file~" to "~dest);
 
-								res.redirect(reqpath);
+								res.redirect(req.path);
 							}break;
 
 							default:
