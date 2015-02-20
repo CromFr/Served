@@ -5,7 +5,11 @@ import pam;
 import core.sys.posix.unistd;
 import core.sys.posix.pwd;
 import core.sys.posix.grp;
-version(Posix) private extern (C) int setgroups(size_t size, gid_t* list);
+version(Posix) private extern (C){
+	int setgroups(size_t size, gid_t* list);
+	int setfsuid(uid_t fsuid);
+	int setfsgid(uid_t fsgid);
+}
 
 class AuthException : Exception{
 	this(in string msg){
@@ -26,20 +30,28 @@ class Auth{
 				if(pw is null)
 					throw new AuthException("Invalid username: '"~login~"'");
 
-				if (pw.pw_gid >= 0) {
-					assert(getgrgid(pw.pw_gid) !is null, "Invalid group id!");
-					assert(setregid(pw.pw_gid, pw.pw_gid) == 0, "Error setting group id!");
+				if(pw.pw_gid >= 0){
+					auto a = getgrgid(pw.pw_gid);
+					assert(a !is null, "Invalid group id!");
+
+					setfsgid(pw.pw_gid);
+					setegid(pw.pw_gid);
 				}
 
 				gid_t grps[1] = [pw.pw_gid];
 				setgroups(1, grps.ptr);
 				//assert( == 0, "Error setting group id!");
 
-				if (pw.pw_uid >= 0) {
-					assert(getpwuid(pw.pw_uid) !is null, "Invalid user id!");
-					assert(setreuid(pw.pw_uid, pw.pw_uid) == 0, "Error setting user id!");
+				if(pw.pw_uid >= 0){
+					auto a = getpwuid(pw.pw_uid);
+					assert(a !is null, "Invalid user id!");
+
+					setfsuid(pw.pw_uid);
+					seteuid(pw.pw_gid);
 				}
 			}
+			else
+				static assert(0, "Login only supported on UNIX platforms");
 		}
 
 		string getUser(in int euid=-1){
@@ -56,6 +68,8 @@ class Auth{
 		void checkCredentials(in string login, in string passwd)
 		{
 			version(Posix){
+				//assert(getUser()=="root", "You must be root to check credentials");
+
 				static __gshared pam_response* convreply;
 
 				int result = 0;
@@ -78,7 +92,7 @@ class Auth{
 				pam_handle_t* pamh = null;
 				result = pam_start("system-auth", login.toStringz, &conv, &pamh);
 				if (result != pam_return.PAM_SUCCESS) {
-					throw new AuthException((cast(pam_return)result).to!string~": Bad login");
+					throw new AuthException((cast(pam_return)result).to!string~": Invalid login");
 				}
 
 				//Prepare authentification

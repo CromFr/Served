@@ -56,9 +56,6 @@ class Server{
 	void Start(){
 		listenHTTP(m_settings, &HandleRequest);
 		auto cfg = m_conf.GetConfig(".");
-
-		auto user = cfg.default_user.to!string;
-		if(user!="") Auth.setUser(cfg.default_user.to!string);
 		
 		runEventLoop();
 	}
@@ -71,6 +68,7 @@ private:
 	URLRouter m_router;
 	FtpRoot m_ftpPub;
 	FtpRoot m_ftpRoots[];
+	string m_defaultUser;
 
 	TemplateDB m_tpldb;
 
@@ -78,6 +76,8 @@ private:
 
 	void Setup(){
 		auto srvconf = m_conf.GetConfig(".");
+
+		m_defaultUser = srvconf.default_user.to!string;
 
 		m_settings = new HTTPServerSettings;
 		m_settings.port = srvconf.port.to!ushort;
@@ -107,6 +107,8 @@ private:
 	void HandleRequest(HTTPServerRequest req, HTTPServerResponse res){
 		import auth : AuthException;
 		import ftproot : SecuredPathException;
+
+		writeln(Auth.getUser);
 
 
 		try{
@@ -160,7 +162,10 @@ private:
 			}
 			
 			//Default case
-			m_router.handleRequest(req, res);
+			if(m_defaultUser!="")
+				Auth.executeAs(m_defaultUser, (){m_router.handleRequest(req, res);});
+			else
+				m_router.handleRequest(req, res);
 
 		}
 		catch(SecuredPathException e){
