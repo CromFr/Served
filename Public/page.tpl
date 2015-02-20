@@ -31,10 +31,9 @@
 									<div class="popover-content">
 										<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
 											<input name="posttype" type="hidden" value="login"/>
-											<label>Login</label>
 											<input name="login" type="text" class="form-control" placeholder="Login"/>
-											<label>Password</label>
-											<input name="password" type="password" class="form-control" placeholder=""/>
+											<label></label>
+											<input name="password" type="password" class="form-control" placeholder="Password"/>
 											<input class="hidden" type="submit" value="Submit"/>
 										</form>
 									</div>
