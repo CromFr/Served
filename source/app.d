@@ -116,11 +116,12 @@ private:
 
 					case "login":
 						if("login" in req.form && "password" in req.form){
+							string login = req.form["login"];
+							string password = req.form["password"];
+
+							writeln("Received login request: ",req.form["login"], ":", req.form["password"]);
 
 							if(!req.session){
-								string login = req.form["login"];
-								string password = req.form["password"];
-
 								Auth.checkCredentials(login, password);
 								//Let server exception handler handle login failures
 
@@ -142,7 +143,7 @@ private:
 						return;
 
 					case "logout":
-						if(!req.session){
+						if(req.session){
 							res.terminateSession();
 							res.redirect(".");
 						}

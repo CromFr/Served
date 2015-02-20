@@ -21,25 +21,35 @@
 				</div>
 				<div class="navbar-right">
 					<p class="navbar-text">{{USER}}</p>
-					<button type="button" class="btn btn-primary navbar-btn">
-						<div class="glyphicon glyphicon-log-in"></div> Login
+					<div class="{{DISP_LOGIN}}" style="display: inline-block;">
+						<button type="button" class="btn btn-primary navbar-btn">
+							<div class="glyphicon glyphicon-log-in"></div> Login
 
-						<div>
-							<div id="popover_login" class="popover popover-html" data-trigger="click" data-placement="bottom" data-toggle="popover">
-								<div class="arrow"></div>
-								<div class="popover-content">
-									<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
-										<input name="posttype" type="hidden" value="login"/>
-										<label>Login</label>
-										<input name="login" type="text" class="form-control" placeholder="Login"/>
-										<label>Password</label>
-										<input name="password" type="password" class="form-control" placeholder=""/>
-										<input style="display:none" type="submit" value="Submit"/>
-									</form>
+							<div>
+								<div id="popover_login" class="popover popover-html" data-trigger="click" data-placement="bottom" data-toggle="popover">
+									<div class="arrow"></div>
+									<div class="popover-content">
+										<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
+											<input name="posttype" type="hidden" value="login"/>
+											<label>Login</label>
+											<input name="login" type="text" class="form-control" placeholder="Login"/>
+											<label>Password</label>
+											<input name="password" type="password" class="form-control" placeholder=""/>
+											<input class="hidden" type="submit" value="Submit"/>
+										</form>
+									</div>
 								</div>
 							</div>
-						</div>
-					</button>
+						</button>
+					</div>
+					<div class="{{DISP_LOGOUT}}" style="display: inline-block;">
+						<form id="form_logout" role="form" enctype="multipart/form-data" method="POST">
+							<input name="posttype" type="hidden" value="logout"/>
+							<button type="submit" class="btn navbar-btn">
+								<div class="glyphicon glyphicon-log-out"></div> Logout
+							</button>
+						</form>
+					</div>
 				</div>
 			</div>
 		</nav>

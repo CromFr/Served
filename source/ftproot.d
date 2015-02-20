@@ -319,7 +319,9 @@ private:
 			"NAVBAR_PATH" : NavbarPath(),
 			"HEADER_INDEX" : HeaderIndex(),
 			"FILE_LIST" : FileList(),
-			"USER" : req.session? req.session.get!string("login") : "Default user"
+			"USER" : req.session? req.session.get!string("login") : "Default user",
+			"DISP_LOGIN": !req.session ? "" : "hidden",
+			"DISP_LOGOUT": req.session ? "" : "hidden"
 		];
 
 		page.write(TemplateDB["page.tpl"].Generate(map));
