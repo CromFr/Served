@@ -107,7 +107,7 @@ class FtpRoot{
 								remove(path);
 								logInfo("Removed: "~path);
 
-								res.redirect(DirEntry(reqFullPath));
+								res.redirect(req.path);
 							}break;
 
 							case "move":{
