@@ -18,7 +18,7 @@ struct Config{
 			"users_write": [""],
 			"root": ".",
 			"blacklist": "^\\..*?$",
-			"resource": "Public",
+			"resource": "public",
 			"autoreload": "true"
 		}]");
 
