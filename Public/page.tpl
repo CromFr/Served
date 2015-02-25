@@ -59,7 +59,7 @@
 
 		<div class="container">
 
-			
+
 			<nav class="navbar navbar-default" role="navigation">
 				<div class="container">
 					<button type="button" class="btn btn-primary navbar-btn" data-toggle="modal" data-target="#modal_upload_file">
@@ -154,9 +154,18 @@
 
 
 		<script src="/_served_pub/jquery/jquery.min.js"></script>
+		<script src="/_served_pub/showdown/dhowdown.min.js"></script>
 		<script src="/_served_pub/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/_served_pub/dropupload.js" type="text/javascript"></script>
 		<script src="/_served_pub/popover.js" type="text/javascript"></script>
 		<script src="/_served_pub/filedrag.js" type="text/javascript"></script>
+		<script src="/_served_pub/markdown.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			// When document is loaded and ready
+			// JS Execution start point
+			$( document ).ready(function() {
+				markdownize();
+			});
+		</script>
 	</body>
 </html>

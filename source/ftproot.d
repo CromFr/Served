@@ -51,7 +51,7 @@ class FtpRoot{
 				res.writeBody("<h1>404: Not found</h1><p>"~reqFullPath~" does not exist</p>", "text/html; charset=UTF-8");
 				return;
 			}
-			
+
 
 			switch(req.method){
 				case HTTPMethod.GET:{
@@ -139,7 +139,7 @@ class FtpRoot{
 		else                       fun();
 	}
 
-	
+
 
 
 private:
@@ -170,7 +170,7 @@ private:
 		return normpath;
 	}
 
-	
+
 
 
 	void ServeDir(ref HTTPServerRequest req, ref HTTPServerResponse res, DirEntry path){
@@ -191,17 +191,8 @@ private:
 
 			auto indexmd = path.buildPath("index.md");
 			if(indexmd.exists){
-				auto res = requestHTTP("https://api.github.com/markdown",
-					(scope req) {
-						import std.file;
-						req.method = HTTPMethod.POST;
-						req.writeJsonBody([
-							"text": readText(indexmd),
-							"mode":"markdown"
-						]);
-					}
-				);
-				return "<div class=\"container\">"~res.bodyReader.readAllUTF8()~"</div>";
+				auto res = readText(indexmd);
+				return "<div class=\"container markdown\">"~res~"</div>";
 			}
 			return "";
 
