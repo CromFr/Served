@@ -68,23 +68,9 @@ class FtpRoot{
 
 				case HTTPMethod.POST:{
 					writeln("POST ",req.form["posttype"],": ",reqFullPath);
-					if(req.contentType=="multipart/form-data"){
+					if(req.contentType=="application/x-www-form-urlencoded"){
 
 						switch(req.form["posttype"]){
-							case "uploadfile":{
-								auto files = req.files;
-								foreach(f ; files){
-
-									auto tmppath = f.tempPath.toNativeString;
-									auto targetpath = buildSecuredPath(reqFullPath, f.filename.toString);
-
-									tmppath.copy(targetpath);
-									logInfo("Uploaded file: "~targetpath);
-								}
-
-								res.redirect(req.path);
-							}break;
-
 							case "newfolder":{
 								string path = buildSecuredPath(reqFullPath, req.form["name"]);
 								mkdir(path);
@@ -107,7 +93,7 @@ class FtpRoot{
 								remove(path);
 								logInfo("Removed: "~path);
 
-								res.redirect(DirEntry(reqFullPath));
+								res.redirect(req.path);
 							}break;
 
 							case "move":{
@@ -123,8 +109,21 @@ class FtpRoot{
 								res.statusCode = 405;
 						}
 
+					}
+					else if(req.contentType=="multipart/form-data"){
+						if(req.form["posttype"] == "uploadfile"){
+							auto files = req.files;
+							foreach(f ; files){
 
+								auto tmppath = f.tempPath.toNativeString;
+								auto targetpath = buildSecuredPath(reqFullPath, f.filename.toString);
 
+								tmppath.copy(targetpath);
+								logInfo("Uploaded file: "~targetpath);
+							}
+
+							res.redirect(req.path);
+						}
 					}
 
 				}break;
@@ -182,7 +181,7 @@ private:
 			foreach(folder ; req.path.normalizedPath.pathSplitter){
 				link = normalizedPath(link, folder);
 
-				ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
+				ret~=`<a class="btn btn-dark navbar-btn" href="`~link~`">`~folder~`</a>`;
 			}
 			return ret;
 		}

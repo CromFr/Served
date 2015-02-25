@@ -113,7 +113,7 @@ private:
 
 		try{
 
-			if(req.method == HTTPMethod.POST && req.contentType=="multipart/form-data"){
+			if(req.method == HTTPMethod.POST && req.contentType=="application/x-www-form-urlencoded"){
 				switch(req.form["posttype"]){
 
 					case "login":

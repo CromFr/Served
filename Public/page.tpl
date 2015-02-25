@@ -15,9 +15,9 @@
 					<a class="navbar-brand" href='https://github.com/CromFr/Served'>Served</a>
 				</div>
 				<div id="navbar" class="navbar-left navbar-collapse collapse">
-					<ul class="nav navbar-nav">
+					<div class="btn-group">
 						{{NAVBAR_PATH}}
-					</ul>
+					</div>
 				</div>
 				<div class="navbar-right">
 					<p class="navbar-text">{{USER}}</p>
@@ -29,7 +29,7 @@
 								<div id="popover_login" class="popover popover-html" data-trigger="click" data-placement="bottom" data-toggle="popover">
 									<div class="arrow"></div>
 									<div class="popover-content">
-										<form id="form_login" role="form" enctype="multipart/form-data" method="POST">
+										<form id="form_login" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 											<input name="posttype" type="hidden" value="login"/>
 											<input name="login" type="text" class="form-control" placeholder="Login"/>
 											<label></label>
@@ -42,7 +42,7 @@
 						</button>
 					</div>
 					<div class="{{DISP_LOGOUT}}" style="display: inline-block;">
-						<form id="form_logout" role="form" enctype="multipart/form-data" method="POST">
+						<form id="form_logout" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 							<input name="posttype" type="hidden" value="logout"/>
 							<button type="submit" class="btn navbar-btn">
 								<div class="glyphicon glyphicon-log-out"></div> Logout
@@ -132,7 +132,7 @@
 						<button type="button" class="close" data-dismiss="modal"><span>&times;</span><span class="sr-only">Close</span></button>
 						<h4 class="modal-title" id="modal_new_folder_label">New folder</h4>
 					</div>
-					<form id="form_new_folder" role="form" enctype="multipart/form-data" method="POST">
+					<form id="form_new_folder" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 						<input name="posttype" type="hidden" value="newfolder"/>
 						<div class="modal-body">
 							<div class="form-group">

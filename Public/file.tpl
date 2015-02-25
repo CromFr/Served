@@ -20,7 +20,7 @@
 					<a type="button" class="btn btn-default {{RIGHT_OTHER_STYLE}}"><b>other</b><br/>{{RIGHT_OTHER}}</a>
 				</div>
 				<br/>
-				<form id="form_rename_{{ID}}" role="form" enctype="multipart/form-data" method="POST">
+				<form id="form_rename_{{ID}}" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 					<input name="posttype" type="hidden" value="rename"/>
 					<input name="file" type="hidden" value="{{NAME}}"/>
 					<label>Rename</label>
@@ -34,12 +34,12 @@
 				<br/>
 				<label>Remove/hide file</label>
 				<div class="btn-group-justified" role="group">
-					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="multipart/form-data" method="POST">
+					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 						<button class="btn btn-danger" type="submit"><div class="glyphicon glyphicon-trash"></div> Remove</button>
 						<input name="posttype" type="hidden" value="remove"/>
 						<input name="file" type="hidden" value="{{NAME}}"/>
 					</form>
-					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="multipart/form-data" method="POST">
+					<form id="form_remove_{{ID}}" class="btn-group" role="form" enctype="application/x-www-form-urlencoded" method="POST">
 						<input name="posttype" type="hidden" value="rename"/>
 						<input name="file" type="hidden" value="{{NAME}}"/>
 						<input name="name" type="hidden" value=".{{NAME}}"/>

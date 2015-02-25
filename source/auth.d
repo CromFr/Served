@@ -34,7 +34,8 @@ class Auth{
 					auto a = getgrgid(pw.pw_gid);
 					assert(a !is null, "Invalid group id!");
 
-					setfsgid(pw.pw_gid);
+					version(linux) setfsgid(pw.pw_gid);
+					else           pragma(msg, "Check if UNIX filesystem access is correct");
 					setegid(pw.pw_gid);
 				}
 
@@ -46,7 +47,8 @@ class Auth{
 					auto a = getpwuid(pw.pw_uid);
 					assert(a !is null, "Invalid user id!");
 
-					setfsuid(pw.pw_uid);
+					version(linux) setfsuid(pw.pw_uid);
+					else           pragma(msg, "Check if UNIX filesystem access is correct");
 					seteuid(pw.pw_gid);
 				}
 			}
