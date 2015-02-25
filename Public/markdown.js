@@ -5,9 +5,9 @@ function markdownize(){
     // Convert each markdown classes to html
     $( ".markdown" ).each(function( index ) {
         var content = $(this).text();
-        content = md_
-        converter.makeHtml(content);
-        $(this).text(content);
+        content = md_converter.makeHtml(content);
+        md_converter.makeHtml(content);
+        $(this).html(content);
     });
 
 }
