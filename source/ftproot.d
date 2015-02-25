@@ -181,7 +181,7 @@ private:
 			foreach(folder ; req.path.normalizedPath.pathSplitter){
 				link = normalizedPath(link, folder);
 
-				ret~="<li><a href=\""~link~"\">"~folder~"</a></li>";
+				ret~=`<a class="btn btn-dark navbar-btn" href="`~link~`">`~folder~`</a>`;
 			}
 			return ret;
 		}

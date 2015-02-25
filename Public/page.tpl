@@ -15,9 +15,9 @@
 					<a class="navbar-brand" href='https://github.com/CromFr/Served'>Served</a>
 				</div>
 				<div id="navbar" class="navbar-left navbar-collapse collapse">
-					<ul class="nav navbar-nav">
+					<div class="btn-group">
 						{{NAVBAR_PATH}}
-					</ul>
+					</div>
 				</div>
 				<div class="navbar-right">
 					<p class="navbar-text">{{USER}}</p>

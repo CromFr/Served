@@ -66,3 +66,13 @@ footer.spacer{
   font-size: 21px;
   font-weight: 200;
 }
+
+.btn-dark{
+	color: #989898;
+	background-color: #2a2a2a;
+	border: 2px solid #222;
+}
+.btn-dark:hover{
+	color: #DDD;
+	background-color: #1C1C1C;
+}
