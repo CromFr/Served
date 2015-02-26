@@ -99,6 +99,9 @@ class FtpRoot{
 							case "move":{
 								string file = buildSecuredPath(reqFullPath, req.form["file"]);
 								string dest = buildSecuredPath(reqFullPath, req.form["destination"], req.form["file"]);
+								if(!dest.isDir)
+									throw new Exception("You can only move a file to a directory.");
+
 								file.rename(dest);
 								logInfo("Moved: "~file~" to "~dest);
 

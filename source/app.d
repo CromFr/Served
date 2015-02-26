@@ -95,7 +95,6 @@ private:
 
 		foreach_reverse(path ; m_conf.roots){
 			auto pathconf = m_conf.GetConfig(path);
-			//writeln(pathconf.toPrettyString);
 
 			auto ftproot = new FtpRoot(pathconf);
 			ftproot.setRoute(m_router, path, 0b110);
@@ -107,9 +106,7 @@ private:
 	void HandleRequest(HTTPServerRequest req, HTTPServerResponse res){
 		import auth : AuthException;
 		import ftproot : SecuredPathException;
-
-		writeln(Auth.getUser);
-
+		import std.array : replace;
 
 		try{
 
@@ -134,13 +131,11 @@ private:
 								res.redirect(req.path);
 							}
 							else{
-								res.statusCode = 401;
-								res.writeBody("<h1>You are already logged in</h1>", "text/html; charset=UTF-8");
+								throw new HTTPStatusException(401, "You are already logged in");
 							}
 						}
 						else{
-							res.statusCode = 400;
-							res.writeBody("<h1>400: Bad Request</h1>", "text/html; charset=UTF-8");
+							throw new HTTPStatusException(400, "Bad Request");
 						}
 						return;
 
@@ -150,8 +145,7 @@ private:
 							res.redirect(req.path);
 						}
 						else{
-							res.statusCode = 401;
-							res.writeBody("<h1>You are not logged in</h1>", "text/html; charset=UTF-8");
+							throw new HTTPStatusException(401, "You are not logged in");
 						}
 						return;
 
@@ -170,14 +164,15 @@ private:
 		}
 		catch(SecuredPathException e){
 			res.statusCode = 403;
-			res.writeBody("<h1>Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
+			debug res.writeBody("<h1>Forbidden</h1><p>"~e.msg~"</p><hr/><ul><li>"~e.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
+			else res.writeBody("<h1>Forbidden</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
 		}
 		catch(AuthException e){
 			res.statusCode = 401;
-			res.writeBody("<h1>Bad authentification</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
+			debug res.writeBody("<h1>Bad authentification</h1><p>"~e.msg~"</p><hr/><ul><li>"~e.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
+			else res.writeBody("<h1>Bad authentification</h1><p>"~e.msg~"</p>", "text/html; charset=UTF-8");
 		}
 		catch(Throwable t){
-			import std.array : replace;
 			res.statusCode = 500;
 			debug res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p><hr/><ul><li>"~t.info.toString.replace("\n", "</li><li>")~"</li></ul></p>", "text/html; charset=UTF-8");
 			else res.writeBody("<h1>Thrown</h1><p>"~t.msg~"</p>", "text/html; charset=UTF-8");
